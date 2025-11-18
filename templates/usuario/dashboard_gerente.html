@@ -1,78 +1,21 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Dashboard - Gerente{% endblock %}
+{% block title %}Dashboard - Gerente General{% endblock %}
 
 {% block page_title %}Dashboard Gerente General{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Métricas para Gerente -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
+<!-- Filtros de Fecha -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Total Farmacias
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="card-title mb-0">Resumen General del Sistema</h6>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-clinic-medical fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Movimientos Hoy
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-shipping-fast fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Eficiencia General
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0%</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Usuarios Activos
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">1</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    <div class="col-md-6 text-end">
+                        <small class="text-muted">Actualizado: {% now "d/m/Y H:i" %}</small>
                     </div>
                 </div>
             </div>
@@ -80,7 +23,183 @@
     </div>
 </div>
 
-<!-- Acciones rápidas para Gerente -->
+<!-- Métricas Principales -->
+<div class="row">
+    <!-- Total Farmacias -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 status-active">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Farmacias
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_farmacias }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            <span class="text-success">{{ farmacias_activas }} activas</span> | 
+                            <span class="text-muted">{{ farmacias_inactivas }} inactivas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Motoristas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2 status-active">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Total Motoristas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_motoristas }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            <span class="text-success">{{ motoristas_activos }} activos</span> | 
+                            <span class="text-muted">{{ motoristas_inactivos }} inactivos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Movimientos Hoy -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Movimientos Hoy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ movimientos_hoy }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            {{ movimientos_completados }} completados
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eficiencia General -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Eficiencia General
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ eficiencia_general }}%
+                        </div>
+                        <div class="text-xs text-muted">
+                            Tasa de éxito
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Segunda Fila de Métricas -->
+<div class="row">
+    <!-- Usuarios Activos -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Usuarios Activos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ usuarios_activos }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            En sistema
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motos Activas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Motos Activas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ motos_activas }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            De {{ total_motos }} total
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asignaciones Activas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Asignaciones Activas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ asignaciones_activas }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            En curso
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incidencias Pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Incidencias Pendientes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ incidencias_pendientes }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            Requieren atención
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card shadow">
@@ -91,25 +210,79 @@
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-users"></i> Gestionar Usuarios
+                            Gestionar Usuarios
                         </a>
                     </div>
                     <div class="col-md-3 mb-2">
                         <a href="{% url 'farmacia:list' %}" class="btn btn-outline-success w-100">
-                            <i class="fas fa-clinic-medical"></i> Ver Farmacias
+                            Ver Farmacias
                         </a>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <a href="#" class="btn btn-outline-info w-100">
-                            <i class="fas fa-chart-bar"></i> Reportes
+                        <a href="{% url 'motorista:list' %}" class="btn btn-outline-info w-100">
+                            Motoristas
                         </a>
                     </div>
                     <div class="col-md-3 mb-2">
-                        <a href="#" class="btn btn-outline-warning w-100">
-                            <i class="fas fa-cog"></i> Configuración
+                        <a href="{% url 'reporte:dashboard' %}" class="btn btn-outline-warning w-100">
+                            Reportes
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen de Actividad Reciente -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Actividad Reciente</h6>
+            </div>
+            <div class="card-body">
+                {% if movimientos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Farmacia</th>
+                                <th>Motorista</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movimiento in movimientos_recientes %}
+                            <tr>
+                                <td>{{ movimiento.idMovimiento }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ movimiento.get_tipoMovimiento_display }}</span>
+                                </td>
+                                <td>{{ movimiento.idFarmaciaOrigen.nombre }}</td>
+                                <td>{{ movimiento.rutMotorista.nombre_completo }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if movimiento.estado == 'entregado' %}bg-success
+                                        {% elif movimiento.estado == 'pendiente' %}bg-warning
+                                        {% elif movimiento.estado == 'en_camino' %}bg-primary
+                                        {% elif movimiento.estado == 'fallido' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ movimiento.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ movimiento.fechaCreacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay actividad reciente</p>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -1,0 +1,337 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard - Motorista{% endblock %}
+
+{% block page_title %}Dashboard Motorista{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% else %}
+
+<!-- Información Personal -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">Mi Información</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ motorista.nombre_completo }}</p>
+                        <p><strong>RUT:</strong> {{ motorista.rut }}</p>
+                        <p><strong>Teléfono:</strong> {{ motorista.telefono }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Comuna:</strong> {{ motorista.comuna }}</p>
+                        <p><strong>Estado:</strong> 
+                            <span class="badge {% if motorista.activo %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ motorista.activo|yesno:"Activo,Inactivo" }}
+                            </span>
+                        </p>
+                        {% if moto_asignada %}
+                        <p><strong>Moto Asignada:</strong> {{ moto_asignada.patente }} - {{ moto_asignada.marca }} {{ moto_asignada.modelo }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Métricas Principales del Motorista -->
+<div class="row">
+    <!-- Movimientos Asignados Hoy -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Asignados Hoy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ movimientos_asignados }}</div>
+                        <div class="text-xs text-muted">Movimientos del día</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimientos Pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pendientes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ movimientos_pendientes }}</div>
+                        <div class="text-xs text-muted">Por entregar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimientos Completados Hoy -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Completados Hoy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ movimientos_completados }}</div>
+                        <div class="text-xs text-muted">Entregas exitosas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasa de Éxito -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Tasa de Éxito
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tasa_exito }}%</div>
+                        <div class="text-xs text-muted">
+                            {{ movimientos_entregados }} de {{ total_movimientos }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de Vehículo y Asignaciones -->
+<div class="row">
+    <!-- Información de la Moto -->
+    {% if moto_asignada %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="m-0 font-weight-bold">Mi Moto Asignada</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <p><strong>Patente:</strong> {{ moto_asignada.patente }}</p>
+                        <p><strong>Marca/Modelo:</strong> {{ moto_asignada.marca }} {{ moto_asignada.modelo }}</p>
+                        <p><strong>Año:</strong> {{ moto_asignada.año }}</p>
+                        <p><strong>Color:</strong> {{ moto_asignada.color }}</p>
+                        <p><strong>Propietario:</strong> {{ moto_asignada.get_propietario_display }}</p>
+                        
+                        <div class="mt-3">
+                            <h6 class="text-muted">Estado de Documentos:</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" {% if moto_asignada.permisoCirculacion %}checked{% endif %} disabled>
+                                <label class="form-check-label">Permiso de Circulación</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" {% if moto_asignada.seguro %}checked{% endif %} disabled>
+                                <label class="form-check-label">Seguro</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" {% if moto_asignada.revisionTecnica %}checked{% endif %} disabled>
+                                <label class="form-check-label">Revisión Técnica</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="m-0 font-weight-bold">Información de Moto</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <p class="text-muted">No tienes una moto asignada actualmente.</p>
+                    <p class="small text-muted">Contacta con tu supervisor para asignarte una moto.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Farmacias Asignadas -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h6 class="m-0 font-weight-bold">Mis Farmacias Asignadas</h6>
+            </div>
+            <div class="card-body">
+                {% if farmacias_asignadas %}
+                    <div class="list-group">
+                        {% for asignacion in farmacias_asignadas %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ asignacion.farmacia.nombre }}</h6>
+                            <p class="mb-1 small">{{ asignacion.farmacia.direccion }}</p>
+                            <p class="mb-1 small text-muted">{{ asignacion.farmacia.comuna }}</p>
+                            <small class="text-muted">
+                                Horario: {{ asignacion.farmacia.apertura|time:"H:i" }} - {{ asignacion.farmacia.cierre|time:"H:i" }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center">
+                        <p class="text-muted">No tienes farmacias asignadas actualmente.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Movimientos Recientes -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Mis Movimientos Recientes</h6>
+            </div>
+            <div class="card-body">
+                {% if movimientos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Farmacia</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movimiento in movimientos_recientes %}
+                            <tr>
+                                <td>{{ movimiento.idMovimiento }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ movimiento.get_tipoMovimiento_display }}</span>
+                                </td>
+                                <td>{{ movimiento.idFarmaciaOrigen.nombre }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if movimiento.estado == 'entregado' %}bg-success
+                                        {% elif movimiento.estado == 'pendiente' %}bg-warning
+                                        {% elif movimiento.estado == 'en_camino' %}bg-primary
+                                        {% elif movimiento.estado == 'fallido' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ movimiento.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ movimiento.fechaCreacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'movimiento:detail' movimiento.idMovimiento %}" class="btn btn-sm btn-outline-primary">
+                                        Ver
+                                    </a>
+                                    {% if movimiento.estado == 'pendiente' %}
+                                    <a href="#" class="btn btn-sm btn-outline-success">
+                                        Iniciar
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No tienes movimientos recientes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas para Motorista -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'movimiento:list' %}" class="btn btn-primary w-100 py-3">
+                            Ver Mis Movimientos
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'configuracion:lista_incidencias' %}" class="btn btn-warning w-100 py-3">
+                            Reportar Incidencia
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'usuario:perfil' %}" class="btn btn-info w-100 py-3">
+                            Mi Perfil
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de Contacto de Emergencia -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="m-0 font-weight-bold">Contacto de Emergencia</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ motorista.nombreContacto }} {{ motorista.apellidoContacto }}</p>
+                        <p><strong>Parentesco:</strong> {{ motorista.get_parentesco_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> {{ motorista.telefonoEmergencia }}</p>
+                        <p><strong>Dirección:</strong> {{ motorista.direccionContacto }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script para actualizar automáticamente el estado cada 30 segundos
+setTimeout(function() {
+    window.location.reload();
+}, 30000); // 30 segundos
+
+// Mostrar notificaciones de nuevos movimientos
+function checkNewMovements() {
+    // Aquí podrías implementar una llamada AJAX para verificar nuevos movimientos
+    console.log("Verificando nuevos movimientos...");
+}
+
+// Ejecutar cada 2 minutos
+setInterval(checkNewMovements, 120000);
+</script>
+{% endblock %}

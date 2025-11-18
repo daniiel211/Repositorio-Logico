@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard - Supervisor{% endblock %}
+
+{% block page_title %}Dashboard Supervisor{% endblock %}
+
+{% block content %}
+<!-- Métricas para Supervisor -->
+<div class="row">
+    <!-- Movimientos Pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2 status-pending">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Movimientos Pendientes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ movimientos_pendientes }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            Por asignar
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asignaciones Activas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 status-active">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Asignaciones Activas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ asignaciones_activas }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            En curso
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Motoristas Disponibles -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Motoristas Disponibles
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ motoristas_disponibles }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            De {{ total_motoristas }} total
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incidencias Activas -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2 status-danger">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Incidencias Activas
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ incidencias_activas }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            Sin resolver
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas Supervisor -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Operaciones de Supervisión</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'movimiento:list' %}" class="btn btn-primary w-100 py-3">
+                            Gestionar Movimientos
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'asignacion:listar_motos' %}" class="btn btn-success w-100 py-3">
+                            Ver Asignaciones
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'motorista:list' %}" class="btn btn-info w-100 py-3">
+                            Supervisar Motoristas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Movimientos que Requieren Atención -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-warning">Movimientos que Requieren Atención</h6>
+                <span class="badge bg-warning">{{ movimientos_atencion_count }}</span>
+            </div>
+            <div class="card-body">
+                {% if movimientos_atencion %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipo</th>
+                                <th>Farmacia</th>
+                                <th>Motorista</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for movimiento in movimientos_atencion %}
+                            <tr>
+                                <td>{{ movimiento.idMovimiento }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ movimiento.get_tipoMovimiento_display }}</span>
+                                </td>
+                                <td>{{ movimiento.idFarmaciaOrigen.nombre }}</td>
+                                <td>{{ movimiento.rutMotorista.nombre_completo }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if movimiento.estado == 'pendiente' %}bg-warning
+                                        {% elif movimiento.estado == 'fallido' %}bg-danger
+                                        {% elif movimiento.estado == 'pendiente_autorizacion' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ movimiento.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'movimiento:detail' movimiento.idMovimiento %}" class="btn btn-sm btn-outline-primary">
+                                        Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay movimientos que requieran atención inmediata</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

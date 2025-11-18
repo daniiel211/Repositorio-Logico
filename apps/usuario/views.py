@@ -42,15 +42,230 @@ def dashboard(request):
     Renderiza templates específicos según el rol del usuario.
     """
     user = request.user
+    
+    # Importar modelos necesarios
+    from apps.farmacia.models import Farmacia
+    from apps.motorista.models import Motorista
+    from apps.moto.models import Moto
+    from apps.movimiento.models import Movimiento
+    from apps.asignacion.models import AsignacionMoto, AsignacionFarmacia
+    from apps.configuracion.models import IncidenciaMovimiento
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.db.models import Q, Count
 
     if user.es_gerente or user.is_superuser:
-        return render(request, 'usuario/dashboard_gerente.html')
+        # Lógica para dashboard gerente
+        hoy = timezone.now().date()
+        
+        # Métricas de Farmacias
+        total_farmacias = Farmacia.objects.count()
+        farmacias_activas = Farmacia.objects.filter(activo=True).count()
+        farmacias_inactivas = Farmacia.objects.filter(activo=False).count()
+        
+        # Métricas de Motoristas
+        total_motoristas = Motorista.objects.count()
+        motoristas_activos = Motorista.objects.filter(activo=True).count()
+        motoristas_inactivos = Motorista.objects.filter(activo=False).count()
+        
+        # Métricas de Motos
+        total_motos = Moto.objects.count()
+        motos_activas = Moto.objects.filter(activo=True).count()
+        
+        # Métricas de Movimientos
+        movimientos_hoy = Movimiento.objects.filter(fechaCreacion__date=hoy).count()
+        movimientos_completados = Movimiento.objects.filter(
+            fechaCreacion__date=hoy, estado='entregado'
+        ).count()
+        
+        # Eficiencia general
+        total_movimientos_periodo = Movimiento.objects.filter(
+            fechaCreacion__date__gte=hoy - timedelta(days=7)
+        ).count()
+        movimientos_entregados_periodo = Movimiento.objects.filter(
+            fechaCreacion__date__gte=hoy - timedelta(days=7), estado='entregado'
+        ).count()
+        
+        eficiencia_general = 0
+        if total_movimientos_periodo > 0:
+            eficiencia_general = round((movimientos_entregados_periodo / total_movimientos_periodo) * 100, 1)
+        
+        # Usuarios activos
+        from .models import Usuario
+        usuarios_activos = Usuario.objects.filter(is_active=True).count()
+        
+        # Asignaciones activas
+        asignaciones_activas = AsignacionMoto.objects.filter(
+            estado='ACTIVA', activo=True
+        ).count() + AsignacionFarmacia.objects.filter(
+            estado='ACTIVA', activo=True
+        ).count()
+        
+        # Incidencias pendientes
+        incidencias_pendientes = IncidenciaMovimiento.objects.filter(
+            estado__in=['REGISTRADA', 'EN_REVISION']
+        ).count()
+        
+        # Movimientos recientes
+        movimientos_recientes = Movimiento.objects.select_related(
+            'rutMotorista', 'idFarmaciaOrigen'
+        ).order_by('-fechaCreacion')[:10]
+
+        context = {
+            'total_farmacias': total_farmacias,
+            'farmacias_activas': farmacias_activas,
+            'farmacias_inactivas': farmacias_inactivas,
+            'total_motoristas': total_motoristas,
+            'motoristas_activos': motoristas_activos,
+            'motoristas_inactivos': motoristas_inactivos,
+            'total_motos': total_motos,
+            'motos_activas': motos_activas,
+            'movimientos_hoy': movimientos_hoy,
+            'movimientos_completados': movimientos_completados,
+            'eficiencia_general': eficiencia_general,
+            'usuarios_activos': usuarios_activos,
+            'asignaciones_activas': asignaciones_activas,
+            'incidencias_pendientes': incidencias_pendientes,
+            'movimientos_recientes': movimientos_recientes,
+        }
+        return render(request, 'usuario/dashboard_gerente.html', context)
+        
     elif user.es_supervisor:
-        return render(request, 'usuario/dashboard_supervisor.html')
+        # Lógica para dashboard supervisor
+        movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
+        
+        asignaciones_activas = AsignacionMoto.objects.filter(
+            estado='ACTIVA', activo=True
+        ).count() + AsignacionFarmacia.objects.filter(
+            estado='ACTIVA', activo=True
+        ).count()
+        
+        motoristas_disponibles = Motorista.objects.filter(
+            activo=True
+        ).exclude(
+            Q(asignacionmoto__estado='ACTIVA') | Q(asignacionfarmacia__estado='ACTIVA')
+        ).count()
+        
+        total_motoristas = Motorista.objects.filter(activo=True).count()
+        
+        incidencias_activas = IncidenciaMovimiento.objects.filter(
+            estado__in=['REGISTRADA', 'EN_REVISION']
+        ).count()
+        
+        movimientos_atencion = Movimiento.objects.filter(
+            estado__in=['pendiente', 'fallido', 'pendiente_autorizacion']
+        ).select_related('rutMotorista', 'idFarmaciaOrigen')[:10]
+        
+        movimientos_atencion_count = movimientos_atencion.count()
+
+        context = {
+            'movimientos_pendientes': movimientos_pendientes,
+            'asignaciones_activas': asignaciones_activas,
+            'motoristas_disponibles': motoristas_disponibles,
+            'total_motoristas': total_motoristas,
+            'incidencias_activas': incidencias_activas,
+            'movimientos_atencion': movimientos_atencion,
+            'movimientos_atencion_count': movimientos_atencion_count,
+        }
+        return render(request, 'usuario/dashboard_supervisor.html', context)
+        
     elif user.es_operador:
-        return render(request, 'usuario/dashboard_operador.html')
+        # Lógica para dashboard operador
+        hoy = timezone.now().date()
+        
+        movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
+        movimientos_hoy = Movimiento.objects.filter(fechaCreacion__date=hoy).count()
+        incidencias_activas = IncidenciaMovimiento.objects.filter(
+            estado__in=['REGISTRADA', 'EN_REVISION']
+        ).count()
+        farmacias_activas = Farmacia.objects.filter(activo=True).count()
+        motoristas_disponibles = Motorista.objects.filter(activo=True).count()
+        
+        movimientos_recientes = Movimiento.objects.filter(
+            creado_por=user
+        ).select_related('rutMotorista', 'idFarmaciaOrigen').order_by('-fechaCreacion')[:5]
+
+        context = {
+            'movimientos_pendientes': movimientos_pendientes,
+            'movimientos_hoy': movimientos_hoy,
+            'incidencias_activas': incidencias_activas,
+            'farmacias_activas': farmacias_activas,
+            'motoristas_disponibles': motoristas_disponibles,
+            'movimientos_recientes': movimientos_recientes,
+        }
+        return render(request, 'usuario/dashboard_operador.html', context)
+        
     elif user.es_motorista:
-        return render(request, 'usuario/dashboard_motorista.html')
+        # Lógica para dashboard motorista
+        from apps.motorista.models import Motorista
+        
+        # Obtener el motorista asociado al usuario
+        try:
+            motorista = Motorista.objects.get(rut=user.rut)
+        except Motorista.DoesNotExist:
+            motorista = None
+        
+        if not motorista:
+            context = {'error': 'No se encontró perfil de motorista asociado a su usuario.'}
+            return render(request, 'usuario/dashboard_motorista.html', context)
+        
+        hoy = timezone.now().date()
+        
+        movimientos_asignados = Movimiento.objects.filter(
+            rutMotorista=motorista, fechaCreacion__date=hoy
+        ).count()
+        
+        movimientos_pendientes = Movimiento.objects.filter(
+            rutMotorista=motorista, estado__in=['pendiente', 'en_camino']
+        ).count()
+        
+        movimientos_completados = Movimiento.objects.filter(
+            rutMotorista=motorista, estado='entregado', fechaCreacion__date=hoy
+        ).count()
+        
+        total_movimientos = Movimiento.objects.filter(rutMotorista=motorista).count()
+        movimientos_entregados = Movimiento.objects.filter(
+            rutMotorista=motorista, estado='entregado'
+        ).count()
+        
+        tasa_exito = 0
+        if total_movimientos > 0:
+            tasa_exito = round((movimientos_entregados / total_movimientos) * 100, 1)
+        
+        # Información de la moto asignada
+        moto_asignada = None
+        try:
+            asignacion_moto = AsignacionMoto.objects.get(
+                motorista=motorista, estado='ACTIVA', activo=True
+            )
+            moto_asignada = asignacion_moto.moto
+        except AsignacionMoto.DoesNotExist:
+            moto_asignada = None
+        
+        # Farmacias asignadas
+        farmacias_asignadas = AsignacionFarmacia.objects.filter(
+            motorista=motorista, estado='ACTIVA', activo=True
+        ).select_related('farmacia')
+        
+        # Movimientos recientes
+        movimientos_recientes = Movimiento.objects.filter(
+            rutMotorista=motorista
+        ).select_related('idFarmaciaOrigen').order_by('-fechaCreacion')[:5]
+
+        context = {
+            'motorista': motorista,
+            'movimientos_asignados': movimientos_asignados,
+            'movimientos_pendientes': movimientos_pendientes,
+            'movimientos_completados': movimientos_completados,
+            'total_movimientos': total_movimientos,
+            'movimientos_entregados': movimientos_entregados,
+            'tasa_exito': tasa_exito,
+            'moto_asignada': moto_asignada,
+            'farmacias_asignadas': farmacias_asignadas,
+            'movimientos_recientes': movimientos_recientes,
+        }
+        return render(request, 'usuario/dashboard_motorista.html', context)
+        
     else:
         return render(request, 'usuario/base_dashboard.html')
 
