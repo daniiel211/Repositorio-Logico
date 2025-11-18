@@ -5,10 +5,8 @@ from django.utils import timezone
 class Usuario(AbstractUser):
     """
     Modelo principal de usuarios personalizado para el sistema Logico.
-    Extiende AbstractUser de Django para mantener compatibilidad.
     """
     
-    # Choices para roles del sistema
     ROL_CHOICES = [
         ('gerente', 'Gerente General'),
         ('supervisor', 'Supervisor'),
@@ -16,7 +14,6 @@ class Usuario(AbstractUser):
         ('motorista', 'Motorista'),
     ]
 
-    # Campos personalizados adicionales
     rut = models.CharField(
         max_length=15,
         unique=True,
@@ -44,7 +41,7 @@ class Usuario(AbstractUser):
         verbose_name='Última actualización'
     )
 
-    # SOBRESCRIBIR campos existentes de AbstractUser para traducción
+    # Campos existentes de AbstractUser
     first_name = models.CharField(
         max_length=150,
         verbose_name='Nombre'
@@ -58,14 +55,12 @@ class Usuario(AbstractUser):
     )
 
     class Meta:
-        """Metadatos para el modelo Usuario"""
         db_table = 'USUARIO'
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
         ordering = ['-date_joined']
 
     def __str__(self):
-        """Representación en string del usuario"""
         return f"{self.first_name} {self.last_name} ({self.username})"
 
     def get_full_name(self):
