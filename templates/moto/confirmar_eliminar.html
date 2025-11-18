@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Confirmar Desactivacion de Motorista{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h1 class="h3 m-0 font-weight-bold text-primary">Confirmar Desactivacion</h1>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro de que quieres desactivar la moto con patente <strong>{{ moto.patente }}</strong>?</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <a href="{{ request.META.HTTP_REFERER|default:'moto:list' }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Sí, desactivar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

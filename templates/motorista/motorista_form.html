@@ -1,0 +1,451 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Motorista - LogiCo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Card del Formulario -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Motorista
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Mensajes -->
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="motoristaForm">
+                        {% csrf_token %}
+                        
+                        <!-- Información Personal -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-person me-2"></i>Información Personal
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- RUT -->
+                            <div class="col-md-6">
+                                <label for="{{ form.rut.id_for_label }}" class="form-label">
+                                    RUT <span class="text-danger">*</span>
+                                </label>
+                                {{ form.rut }}
+                                <div class="form-text">Formato: 12.345.678-9</div>
+                                {% if form.rut.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.rut.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Fecha Nacimiento -->
+                            <div class="col-md-6">
+                                <label for="{{ form.fechaNacimiento.id_for_label }}" class="form-label">
+                                    Fecha de Nacimiento <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fechaNacimiento }}
+                                {% if form.fechaNacimiento.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.fechaNacimiento.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Nombres -->
+                            <div class="col-md-4">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                    Nombres <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.nombre.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.apellidoPaterno.id_for_label }}" class="form-label">
+                                    Apellido Paterno <span class="text-danger">*</span>
+                                </label>
+                                {{ form.apellidoPaterno }}
+                                {% if form.apellidoPaterno.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.apellidoPaterno.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.apellidoMaterno.id_for_label }}" class="form-label">
+                                    Apellido Materno <span class="text-danger">*</span>
+                                </label>
+                                {{ form.apellidoMaterno }}
+                                {% if form.apellidoMaterno.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.apellidoMaterno.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-telephone me-2"></i>Información de Contacto
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Teléfono y Correo -->
+                            <div class="col-md-6">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                    Teléfono <span class="text-danger">*</span>
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.telefono.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.correo.id_for_label }}" class="form-label">
+                                    Correo Electrónico <span class="text-danger">*</span>
+                                </label>
+                                {{ form.correo }}
+                                {% if form.correo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.correo.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Dirección -->
+                            <div class="col-12">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                {{ form.direccion }}
+                                {% if form.direccion.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.direccion.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Ubicación -->
+                            <div class="col-md-4">
+                                <label for="{{ form.comuna.id_for_label }}" class="form-label">
+                                    Comuna <span class="text-danger">*</span>
+                                </label>
+                                {{ form.comuna }}
+                                {% if form.comuna.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.comuna.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.provincia.id_for_label }}" class="form-label">
+                                    Provincia <span class="text-danger">*</span>
+                                </label>
+                                {{ form.provincia }}
+                                {% if form.provincia.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.provincia.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.region.id_for_label }}" class="form-label">
+                                    Región <span class="text-danger">*</span>
+                                </label>
+                                {{ form.region }}
+                                {% if form.region.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.region.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Información Laboral -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-briefcase me-2"></i>Información Laboral
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- ¿Tiene Moto? -->
+                            <div class="col-md-6">
+                                <label for="{{ form.moto.id_for_label }}" class="form-label">
+                                    ¿Tiene Moto? <span class="text-danger">*</span>
+                                </label>
+                                {{ form.moto }}
+                                {% if form.moto.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.moto.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Licencia -->
+                            <div class="col-md-6">
+                                <label for="{{ form.archivo.id_for_label }}" class="form-label">
+                                    Licencia de Conducir <span class="text-danger">*</span>
+                                </label>
+                                {{ form.archivo }}
+                                {% if form.archivo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.archivo.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Fechas de Control -->
+                            <div class="col-md-4">
+                                <label for="{{ form.fechaUltControl.id_for_label }}" class="form-label">
+                                    Último Control <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fechaUltControl }}
+                                {% if form.fechaUltControl.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.fechaUltControl.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.fechaControl.id_for_label }}" class="form-label">
+                                    Próximo Control <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fechaControl }}
+                                {% if form.fechaControl.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.fechaControl.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.fechaVencimiento.id_for_label }}" class="form-label">
+                                    Vencimiento Licencia <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fechaVencimiento }}
+                                {% if form.fechaVencimiento.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.fechaVencimiento.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Contacto de Emergencia -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-telephone-forward me-2"></i>Contacto de Emergencia
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Parentesco -->
+                            <div class="col-md-4">
+                                <label for="{{ form.parentesco.id_for_label }}" class="form-label">
+                                    Parentesco <span class="text-danger">*</span>
+                                </label>
+                                {{ form.parentesco }}
+                                {% if form.parentesco.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.parentesco.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Teléfono Emergencia -->
+                            <div class="col-md-4">
+                                <label for="{{ form.telefonoEmergencia.id_for_label }}" class="form-label">
+                                    Teléfono Emergencia <span class="text-danger">*</span>
+                                </label>
+                                {{ form.telefonoEmergencia }}
+                                {% if form.telefonoEmergencia.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.telefonoEmergencia.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Nombre Contacto -->
+                            <div class="col-md-4">
+                                <label for="{{ form.nombreContacto.id_for_label }}" class="form-label">
+                                    Nombre Contacto <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombreContacto }}
+                                {% if form.nombreContacto.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.nombreContacto.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Apellido Contacto -->
+                            <div class="col-md-6">
+                                <label for="{{ form.apellidoContacto.id_for_label }}" class="form-label">
+                                    Apellido Contacto <span class="text-danger">*</span>
+                                </label>
+                                {{ form.apellidoContacto }}
+                                {% if form.apellidoContacto.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.apellidoContacto.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Dirección Contacto -->
+                            <div class="col-md-6">
+                                <label for="{{ form.direccionContacto.id_for_label }}" class="form-label">
+                                    Dirección Contacto <span class="text-danger">*</span>
+                                </label>
+                                {{ form.direccionContacto }}
+                                {% if form.direccionContacto.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.direccionContacto.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'motorista:list' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Volver al Listado
+                                    </a>
+                                    <div>
+                                        <button type="submit" name="action" value="save" class="btn btn-primary">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            {% if form.instance.pk %}Actualizar{% else %}Guardar{% endif %} Motorista
+                                        </button>
+                                        {% if not form.instance.pk %}
+                                        <button type="submit" name="action" value="add_another" class="btn btn-outline-primary">
+                                            <i class="bi bi-plus-circle me-1"></i>Guardar y Agregar Otro
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información de Auditoría -->
+            {% if form.instance.pk %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Información de Auditoría
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Creado por:</small>
+                            <p class="mb-2">{{ form.instance.creado_por|default:"Sistema" }}</p>
+                            
+                            <small class="text-muted">Fecha creación:</small>
+                            <p class="mb-0">{{ form.instance.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Modificado por:</small>
+                            <p class="mb-2">{{ form.instance.modificado_por|default:"Sistema" }}</p>
+                            
+                            <small class="text-muted">Última modificación:</small>
+                            <p class="mb-0">{{ form.instance.fecha_modificacion|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para formatear RUT
+function formatRut(input) {
+    let rut = input.value.replace(/\./g, '').replace(/\-/g, '');
+    if (rut.length > 1) {
+        let cuerpo = rut.slice(0, -1);
+        let dv = rut.slice(-1).toUpperCase();
+        
+        // Formatear con puntos
+        cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        
+        input.value = cuerpo + '-' + dv;
+    }
+}
+
+// Validación de fechas
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaUltControl = document.getElementById('{{ form.fechaUltControl.id_for_label }}');
+    const fechaControl = document.getElementById('{{ form.fechaControl.id_for_label }}');
+    const fechaVencimiento = document.getElementById('{{ form.fechaVencimiento.id_for_label }}');
+    
+    function validarFechas() {
+        const hoy = new Date().toISOString().split('T')[0];
+        
+        if (fechaUltControl.value > hoy) {
+            fechaUltControl.setCustomValidity('La fecha no puede ser futura');
+        } else {
+            fechaUltControl.setCustomValidity('');
+        }
+        
+        if (fechaControl.value && fechaControl.value <= hoy) {
+            fechaControl.setCustomValidity('El próximo control debe ser una fecha futura');
+        } else {
+            fechaControl.setCustomValidity('');
+        }
+        
+        if (fechaVencimiento.value && fechaVencimiento.value <= hoy) {
+            fechaVencimiento.setCustomValidity('La licencia está vencida');
+        } else {
+            fechaVencimiento.setCustomValidity('');
+        }
+    }
+    
+    fechaUltControl.addEventListener('change', validarFechas);
+    fechaControl.addEventListener('change', validarFechas);
+    fechaVencimiento.addEventListener('change', validarFechas);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if moto %}Editar {{ moto.patente }}{% else %}Nueva Moto{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas {% if moto %}fa-edit{% else %}fa-plus{% endif %}"></i>
+                    {% if moto %}Editar Moto {{ moto.patente }}{% else %}Registrar Nueva Moto{% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.patente.id_for_label }}" class="form-label">
+                                    {{ form.patente.label }} *
+                                </label>
+                                {{ form.patente }}
+                                {% if form.patente.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.patente.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Formato: AA-BB-11, ABCD12, CD1234, etc.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.propietario.id_for_label }}" class="form-label">
+                                    {{ form.propietario.label }} *
+                                </label>
+                                {{ form.propietario }}
+                                {% if form.propietario.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.propietario.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.marca.id_for_label }}" class="form-label">
+                                    {{ form.marca.label }} *
+                                </label>
+                                {{ form.marca }}
+                                {% if form.marca.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.marca.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.modelo.id_for_label }}" class="form-label">
+                                    {{ form.modelo.label }} *
+                                </label>
+                                {{ form.modelo }}
+                                {% if form.modelo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.modelo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.año.id_for_label }}" class="form-label">
+                                    {{ form.año.label }} *
+                                </label>
+                                {{ form.año }}
+                                {% if form.año.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.año.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.color.id_for_label }}" class="form-label">
+                                    {{ form.color.label }} *
+                                </label>
+                                {{ form.color }}
+                                {% if form.color.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.color.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.numChasis.id_for_label }}" class="form-label">
+                                    {{ form.numChasis.label }} *
+                                </label>
+                                {{ form.numChasis }}
+                                {% if form.numChasis.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.numChasis.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.motor.id_for_label }}" class="form-label">
+                                    {{ form.motor.label }} *
+                                </label>
+                                {{ form.motor }}
+                                {% if form.motor.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.motor.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-3"><i class="fas fa-file-alt"></i> Documentos</h5>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.permisoCirculacion.id_for_label }}" class="form-label">
+                                    {{ form.permisoCirculacion.label }}
+                                </label>
+                                {{ form.permisoCirculacion }}
+                                {% if form.permisoCirculacion.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.permisoCirculacion.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if moto and moto.permisoCirculacion %}
+                                <small class="form-text">
+                                    <a href="{{ moto.permisoCirculacion.url }}" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> Ver documento actual
+                                    </a>
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.seguro.id_for_label }}" class="form-label">
+                                    {{ form.seguro.label }}
+                                </label>
+                                {{ form.seguro }}
+                                {% if form.seguro.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.seguro.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if moto and moto.seguro %}
+                                <small class="form-text">
+                                    <a href="{{ moto.seguro.url }}" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> Ver documento actual
+                                    </a>
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.revisionTecnica.id_for_label }}" class="form-label">
+                                    {{ form.revisionTecnica.label }}
+                                </label>
+                                {{ form.revisionTecnica }}
+                                {% if form.revisionTecnica.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.revisionTecnica.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if moto and moto.revisionTecnica %}
+                                <small class="form-text">
+                                    <a href="{{ moto.revisionTecnica.url }}" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> Ver documento actual
+                                    </a>
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% if moto %}{% url 'moto:detalle' moto.patente %}{% else %}{% url 'moto:listar' %}{% endif %}" 
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> 
+                            {% if moto %}Actualizar Moto{% else %}Registrar Moto{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar clases de Bootstrap a los campos del formulario
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.classList.contains('is-invalid')) {
+            input.classList.add('is-invalid');
+        } else {
+            input.classList.add('form-control');
+        }
+    });
+});
+</script>
+{% endblock %}

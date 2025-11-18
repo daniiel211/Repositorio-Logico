@@ -1,0 +1,319 @@
+{% extends 'usuario/base_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Mensajes -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Tarjeta de Perfil -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-circle"></i> Mi Perfil
+                        </h4>
+                        <div>
+                            <a href="{% url 'usuario:cambiar_password' %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-key"></i> Cambiar Contraseña
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Columna Izquierda - Información Personal -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3 border-bottom pb-2">
+                                <i class="fas fa-user"></i> Información Personal
+                            </h5>
+                            
+                            <!-- Nombre -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Nombre</label>
+                                <div class="form-control bg-light">
+                                    {{ user.first_name }}
+                                </div>
+                            </div>
+
+                            <!-- Apellido -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Apellido</label>
+                                <div class="form-control bg-light">
+                                    {{ user.last_name }}
+                                </div>
+                            </div>
+
+                            <!-- RUT -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">RUT</label>
+                                <div class="form-control bg-light">
+                                    {{ user.rut|default:"No especificado" }}
+                                </div>
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Teléfono</label>
+                                <div class="form-control bg-light">
+                                    {{ user.telefono|default:"No especificado" }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha - Información de Cuenta -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3 border-bottom pb-2">
+                                <i class="fas fa-lock"></i> Información de Cuenta
+                            </h5>
+                            
+                            <!-- Username -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Nombre de Usuario</label>
+                                <div class="form-control bg-light">
+                                    {{ user.username }}
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Correo Electrónico</label>
+                                <div class="form-control bg-light">
+                                    {{ user.email }}
+                                </div>
+                            </div>
+
+                            <!-- Rol -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Rol del Usuario</label>
+                                <div class="form-control bg-light">
+                                    <span class="badge badge-info badge-lg p-2">
+                                        {{ user.get_rol_display }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="info-group mb-3">
+                                <label class="font-weight-bold text-gray-700">Estado de la Cuenta</label>
+                                <div class="form-control bg-light">
+                                    {% if user.is_active %}
+                                        <span class="badge badge-success badge-lg p-2">
+                                            <i class="fas fa-check-circle"></i> Activo
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-danger badge-lg p-2">
+                                            <i class="fas fa-times-circle"></i> Inactivo
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Auditoría -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Información de Auditoría
+                                            </div>
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <small class="text-gray-800">
+                                                        <strong><i class="fas fa-calendar-plus"></i> Fecha de registro:</strong><br>
+                                                        {{ user.date_joined|date:"d/m/Y H:i" }}
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-gray-800">
+                                                        <strong><i class="fas fa-sync-alt"></i> Última actualización:</strong><br>
+                                                        {{ user.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-gray-800">
+                                                        <strong><i class="fas fa-sign-in-alt"></i> Último acceso:</strong><br>
+                                                        {{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón de acción -->
+                    <div class="form-group mt-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'usuario:dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                            </a>
+                            {% if user.es_gerente or user.is_superuser %}
+                            <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-info">
+                                <i class="fas fa-users"></i> Gestionar Usuarios
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Estadísticas Rápidas -->
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Rol Asignado
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {{ user.get_rol_display }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-tag fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Estado de Cuenta
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Miembro desde
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        {{ user.date_joined|date:"M Y" }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Auto-dismiss alerts después de 5 segundos
+        setTimeout(function() {
+            $('.alert').fadeTo(500, 0).slideUp(500, function(){
+                $(this).remove(); 
+            });
+        }, 5000);
+    });
+</script>
+
+<style>
+.info-group {
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.badge-lg {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.bg-light {
+    background-color: #f8f9fc !important;
+    border: 1px solid #e3e6f0;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.form-control[readonly] {
+    background-color: #f8f9fc;
+}
+</style>
+{% endblock %}

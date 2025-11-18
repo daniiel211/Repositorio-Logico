@@ -1,0 +1,31 @@
+{% extends 'usuario/base_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">Confirmar Desactivación</h4>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro que deseas desactivar al usuario?</p>
+                    <div class="alert alert-info">
+                        <strong>Usuario:</strong> {{ usuario.get_full_name }}<br>
+                        <strong>Nombre de usuario:</strong> {{ usuario.username }}<br>
+                        <strong>Rol:</strong> {{ usuario.get_rol_display }}
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">Sí, Desactivar</button>
+                            <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

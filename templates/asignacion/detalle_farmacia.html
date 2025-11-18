@@ -1,0 +1,110 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">{{ titulo }}</h1>
+        <div class="btn-group">
+            <a href="{% url 'asignacion:listar_farmacias' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            {% if asignacion.estado == 'ACTIVA' %}
+            <a href="{% url 'asignacion:finalizar_farmacia' asignacion.id %}" class="btn btn-warning">
+                <i class="fas fa-flag-checkered"></i> Finalizar
+            </a>
+            <a href="{% url 'asignacion:reemplazar_motorista' asignacion.farmacia.IdFarmacia %}" class="btn btn-info">
+                <i class="fas fa-user-exchange"></i> Reemplazar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Información principal -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-success">Información de la Asignación</h6>
+                    <span class="badge badge-{% if asignacion.estado == 'ACTIVA' %}success{% elif asignacion.estado == 'FINALIZADA' %}secondary{% else %}warning{% endif %}">
+                        {{ asignacion.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold text-success">Motorista</h6>
+                            <p class="mb-3">{{ asignacion.motorista }}</p>
+                            
+                            <h6 class="font-weight-bold text-success">Farmacia</h6>
+                            <p class="mb-3">
+                                <strong>{{ asignacion.farmacia.nombre }}</strong><br>
+                                {{ asignacion.farmacia.direccion }}<br>
+                                {{ asignacion.farmacia.comuna }}, {{ asignacion.farmacia.region }}
+                            </p>
+                            
+                            <h6 class="font-weight-bold text-success">Horario Farmacia</h6>
+                            <p class="mb-3">
+                                {{ asignacion.farmacia.apertura|time:"H:i" }} - {{ asignacion.farmacia.cierre|time:"H:i" }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="font-weight-bold text-success">Fecha de Asignación</h6>
+                            <p class="mb-3">{{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}</p>
+                            
+                            <h6 class="font-weight-bold text-success">Duración</h6>
+                            <p class="mb-3">{{ asignacion.duracion_asignacion.days }} días</p>
+                            
+                            {% if asignacion.fecha_finalizacion %}
+                            <h6 class="font-weight-bold text-success">Fecha de Finalización</h6>
+                            <p class="mb-3">{{ asignacion.fecha_finalizacion|date:"d/m/Y H:i" }}</p>
+                            {% endif %}
+                            
+                            <h6 class="font-weight-bold text-success">Creado por</h6>
+                            <p class="mb-3">{{ asignacion.creado_por.get_full_name|default:asignacion.creado_por.username }}</p>
+                        </div>
+                    </div>
+
+                    {% if asignacion.observaciones %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="font-weight-bold text-success">Observaciones</h6>
+                            <div class="border rounded p-3 bg-light">
+                                {{ asignacion.observaciones|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información de auditoría -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-secondary">Información de Auditoría</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Fecha creación:</strong> {{ asignacion.fecha_creacion|date:"d/m/Y H:i" }}<br>
+                                <strong>Última modificación:</strong> {{ asignacion.fecha_modificacion|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                {% if asignacion.modificado_por %}
+                                <strong>Modificado por:</strong> {{ asignacion.modificado_por.get_full_name|default:asignacion.modificado_por.username }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Acerca de - LogiCo{% endblock %}
+
+{% block page_title %}Acerca de LogiCo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Sistema de Gestión Logística</h4>
+                <p class="card-text">
+                    <strong>LogiCo</strong> es un sistema web desarrollado en Django para automatizar los 
+                    procesos logísticos de Discopro Ltda., empresa que presta servicios de despacho a 
+                    domicilio para farmacias Cruz Verde.
+                </p>
+                
+                <h5>Características Principales</h5>
+                <ul>
+                    <li>Gestión completa de farmacias, motoristas y vehículos</li>
+                    <li>Sistema de asignaciones dinámicas</li>
+                    <li>Control de movimientos y entregas</li>
+                    <li>Sistema de rangos geográficos</li>
+                    <li>Reportes y dashboard en tiempo real</li>
+                    <li>Interfaz responsive con Bootstrap 5</li>
+                </ul>
+                
+                <h5>Módulos Implementados</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="alert alert-success">
+                            <strong>✓ Completados:</strong>
+                            <ul class="mb-0">
+                                <li>Gestión de Farmacias</li>
+                                <li>Gestión de Motoristas</li>
+                                <li>Gestión de Motos</li>
+                                <li>Sistema de Asignaciones</li>
+                                <li>Autenticación Básica</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning">
+                            <strong>🔄 En Desarrollo:</strong>
+                            <ul class="mb-0">
+                                <li>Gestión de Movimientos (CORE)</li>
+                                <li>Sistema de Rangos Geográficos</li>
+                                <li>Reportes y Dashboard</li>
+                                <li>Seguridad Avanzada</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Información Técnica</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Versión:</th>
+                            <td>{{ version_sistema }}</td>
+                        </tr>
+                        <tr>
+                            <th>Framework:</th>
+                            <td>Django 5.2.5</td>
+                        </tr>
+                        <tr>
+                            <th>Base de Datos:</th>
+                            <td>MySQL</td>
+                        </tr>
+                        <tr>
+                            <th>Frontend:</th>
+                            <td>Bootstrap 5 + Django Templates</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">{{ titulo }}</h1>
+        <a href="{% if 'moto' in request.path %}{% url 'asignacion:listar_motos' %}{% else %}{% url 'asignacion:listar_farmacias' %}{% endif %}" 
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Información de la asignación -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información de la Asignación</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Motorista:</strong> {{ asignacion.motorista }}<br>
+                            {% if tipo_asignacion == 'moto' %}
+                                <strong>Moto:</strong> {{ asignacion.moto }}
+                            {% elif tipo_asignacion == 'farmacia' %}
+                                <strong>Farmacia:</strong> {{ asignacion.farmacia }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha Asignación:</strong> {{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}<br>
+                            <strong>Duración:</strong> {{ asignacion.duracion_asignacion.days }} días
+                        </div>
+                    </div>
+                    {% if asignacion.observaciones %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <strong>Observaciones:</strong>
+                            <p class="text-muted">{{ asignacion.observaciones }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Formulario de finalización -->
+            <div class="card shadow">
+                <div class="card-header py-3 bg-warning">
+                    <h6 class="m-0 font-weight-bold text-white">Confirmar Finalización</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Advertencia:</strong> Esta acción finalizará la asignación y no se puede deshacer.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-flag-checkered"></i> Finalizar Asignación
+                            </button>
+                            <a href="{% if 'moto' in request.path %}{% url 'asignacion:listar_motos' %}{% else %}{% url 'asignacion:listar_farmacias' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'movimiento:list' %}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Listado
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Columna Principal: Detalles del Movimiento -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Información General</h6>
+                    <span class="badge rounded-pill bg-{% if movimiento.estado == 'entregado' %}success{% elif movimiento.estado == 'pendiente' %}warning text-dark{% elif movimiento.estado == 'fallido' or movimiento.estado == 'anulado' %}danger{% else %}info{% endif %}">
+                        {{ movimiento.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>ID Movimiento:</strong> {{ movimiento.idMovimiento }}</p>
+                            <p><strong>Tipo:</strong> {{ movimiento.get_tipoMovimiento_display }}</p>
+                            <p><strong>Motorista:</strong> {{ movimiento.rutMotorista.nombre_completo }} ({{ movimiento.rutMotorista.rut }})</p>
+                            <p><strong>Farmacia Origen:</strong> {{ movimiento.idFarmaciaOrigen.nombre }}</p>
+                            {% if movimiento.idFarmaciaDestino %}
+                            <p><strong>Farmacia Destino:</strong> {{ movimiento.idFarmaciaDestino.nombre }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Fecha Creación:</strong> {{ movimiento.fechaCreacion|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Fecha Entrega:</strong> {{ movimiento.fechaEntrega|date:"d/m/Y H:i"|default:"Pendiente" }}</p>
+                            <p><strong>Creado por:</strong> {{ movimiento.creado_por.get_full_name|default:"Sistema" }}</p>
+                            {% if movimiento.autorizadoPor %}
+                            <p><strong>Autorizado por:</strong> {{ movimiento.autorizadoPor.get_full_name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <h6>Datos del Cliente y Pago</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Cliente:</strong> {{ movimiento.clienteNombre|default:"N/A" }}</p>
+                            <p><strong>Teléfono:</strong> {{ movimiento.clienteTelefono|default:"N/A" }}</p>
+                            <p><strong>Dirección:</strong> {{ movimiento.direccionDestino|default:"N/A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Método de Pago:</strong> {{ movimiento.get_metodoPago_display|default:"N/A" }}</p>
+                            <p><strong>Monto:</strong> ${{ movimiento.monto|default:"0" }}</p>
+                        </div>
+                    </div>
+                    {% if movimiento.observaciones %}
+                    <hr>
+                    <h6>Observaciones</h6>
+                    <p class="text-muted">{{ movimiento.observaciones|linebreaksbr }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Detalles Específicos por Tipo -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detalles del Movimiento {{ movimiento.get_tipoMovimiento_display }}</h6>
+                </div>
+                <div class="card-body">
+                    {% if movimiento.tipoMovimiento == 'directo' and movimiento.directo %}
+                        <p><strong>Producto(s):</strong> {{ movimiento.directo.producto }}</p>
+                        <p><strong>Instrucciones:</strong> {{ movimiento.directo.instrucciones|default:"Ninguna" }}</p>
+                    {% elif movimiento.tipoMovimiento == 'receta' and movimiento.receta %}
+                        <p><strong>Producto(s):</strong> {{ movimiento.receta.producto }}</p>
+                        <p><strong>Retiro de receta física:</strong> {% if movimiento.receta.requiereRetiroReceta %}Sí{% else %}No{% endif %}</p>
+                        <p><strong>Receta retirada:</strong> {% if movimiento.receta.recetaRetirada %}Sí{% else %}No{% endif %}</p>
+                        {% if movimiento.receta.archivoReceta %}
+                        <p><strong>Archivo Receta:</strong> <a href="{{ movimiento.receta.archivoReceta.url }}" target="_blank">Ver Archivo</a></p>
+                        {% endif %}
+                    {% elif movimiento.tipoMovimiento == 'traslado' and movimiento.traslado %}
+                        <p><strong>Producto(s):</strong> {{ movimiento.traslado.producto }}</p>
+                        <p><strong>Cantidad:</strong> {{ movimiento.traslado.cantidad }}</p>
+                        <p><strong>Motivo:</strong> {{ movimiento.traslado.motivoTraslado }}</p>
+                    {% elif movimiento.tipoMovimiento == 'reenvio' and movimiento.reenvio %}
+                        <p><strong>Movimiento Original:</strong> <a href="{% url 'movimiento:detail' movimiento.movimientoOrigen.pk %}">#{{ movimiento.movimientoOrigen.idMovimiento }}</a></p>
+                        <p><strong>Motivo del Reenvío:</strong> {{ movimiento.reenvio.motivoReenvio }}</p>
+                        <p><strong>Nueva Dirección:</strong> {{ movimiento.reenvio.nuevaDireccion }}</p>
+                        <p><strong>Nueva Fecha Programada:</strong> {{ movimiento.reenvio.nuevaFecha|date:"d/m/Y H:i" }}</p>
+                    {% else %}
+                        <p class="text-muted">No hay detalles específicos para este tipo de movimiento.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Cambiar Estado (si no es estado final) -->
+        {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Actualizar Estado del Movimiento</h6>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'movimiento:cambiar_estado' movimiento.pk %}" method="post">
+                    {% load crispy_forms_tags %}
+                    {% csrf_token %}
+                    {{ estado_form|crispy }}
+                    <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Guardar Nuevo Estado</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Columna Derecha: Bitácora -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Bitácora de Cambios</h6>
+                </div>
+                <div class="card-body">
+                    {% if movimiento.bitacora.all %}
+                        <ul class="list-group list-group-flush">
+                        {% for registro in movimiento.bitacora.all %}
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ registro.usuario.get_full_name|default:"Usuario no disponible" }}</h6>
+                                    <small class="text-muted">{{ registro.fechaCambio|timesince }} atrás</small>
+                                </div>
+                                <p class="mb-1">
+                                    Cambió estado de <strong>{{ registro.estadoAnterior }}</strong> a <strong>{{ registro.estadoNuevo }}</strong>.
+                                </p>
+                                {% if registro.observaciones %}
+                                <small class="text-muted">Obs: {{ registro.observaciones }}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center text-muted">No hay registros en la bitácora para este movimiento.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

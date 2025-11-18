@@ -1,0 +1,253 @@
+<!-- templates/motorista/dashboard.html -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Motoristas - LogiCo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard Motoristas
+        </h1>
+        <a href="{% url 'motorista:create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Nuevo Motorista
+        </a>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Motoristas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_motoristas }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Motoristas Activos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ motoristas_activos }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Motoristas Inactivos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ motoristas_inactivos }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-x-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Tasa de Actividad
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if total_motoristas > 0 %}
+                                    {{ motoristas_activos|floatformat:0 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-percent fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Controles Próximos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Próximos Controles (30 días)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if controles_proximos %}
+                        <div class="list-group list-group-flush">
+                            {% for motorista in controles_proximos %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ motorista.nombre_completo }}</strong>
+                                        <br>
+                                        <small class="text-muted">RUT: {{ motorista.rut }}</small>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">
+                                        {{ motorista.fechaControl|date:"d/m/Y" }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay controles próximos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Licencias por Vencer -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Licencias por Vencer (30 días)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if licencias_proximas_vencer %}
+                        <div class="list-group list-group-flush">
+                            {% for motorista in licencias_proximas_vencer %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ motorista.nombre_completo }}</strong>
+                                        <br>
+                                        <small class="text-muted">RUT: {{ motorista.rut }}</small>
+                                    </div>
+                                    <span class="badge bg-danger">
+                                        {{ motorista.fechaVencimiento|date:"d/m/Y" }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay licencias por vencer</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos Registros -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Últimos Motoristas Registrados
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if ultimos_registros %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>RUT</th>
+                                        <th>Nombre Completo</th>
+                                        <th>Teléfono</th>
+                                        <th>Región</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for motorista in ultimos_registros %}
+                                        <tr>
+                                            <td><strong>{{ motorista.rut }}</strong></td>
+                                            <td>{{ motorista.nombre_completo }}</td>
+                                            <td>{{ motorista.telefono }}</td>
+                                            <td>{{ motorista.region }}</td>
+                                            <td>{{ motorista.fecha_creacion|date:"d/m/Y" }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'motorista:update' motorista.rut %}" 
+                                                       class="btn btn-outline-warning" title="Editar">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    {% if motorista.activo %}
+                                                        <form method="post" 
+                                                              action="{% url 'motorista:delete' motorista.rut %}" 
+                                                              class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger" 
+                                                                    title="Desactivar"
+                                                                    onclick="return confirm('¿Desactivar este motorista?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="post" 
+                                                              action="{% url 'motorista:reactivate' motorista.rut %}" 
+                                                              class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-success" 
+                                                                    title="Reactivar"
+                                                                    onclick="return confirm('¿Reactivar este motorista?')">
+                                                                <i class="bi bi-arrow-clockwise"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">No hay motoristas registrados</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'motorista:list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul me-1"></i>Ver Listado Completo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

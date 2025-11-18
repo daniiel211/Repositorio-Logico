@@ -1,0 +1,52 @@
+{% extends 'usuario/base_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Detalles del Usuario</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información Personal</h5>
+                            <p><strong>Nombre:</strong> {{ usuario.first_name }}</p>
+                            <p><strong>Apellido:</strong> {{ usuario.last_name }}</p>
+                            <p><strong>RUT:</strong> {{ usuario.rut|default:"No especificado" }}</p>
+                            <p><strong>Teléfono:</strong> {{ usuario.telefono|default:"No especificado" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Información de Cuenta</h5>
+                            <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+                            <p><strong>Email:</strong> {{ usuario.email }}</p>
+                            <p><strong>Rol:</strong> <span class="badge badge-info">{{ usuario.get_rol_display }}</span></p>
+                            <p><strong>Estado:</strong> 
+                                {% if usuario.is_active %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información de Registro</h5>
+                            <p><strong>Fecha de registro:</strong> {{ usuario.date_joined|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Última actualización:</strong> {{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-secondary">Volver</a>
+                    <a href="{% url 'usuario:editar_usuario' usuario.id %}" class="btn btn-warning">Editar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

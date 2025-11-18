@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'asignacion:listar_farmacias' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Información actual -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información Actual</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Farmacia:</strong> {{ farmacia.nombre }}<br>
+                            <strong>ID Farmacia:</strong> {{ farmacia.IdFarmacia }}<br>
+                            <strong>Dirección:</strong> {{ farmacia.direccion }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Motorista Actual:</strong> {{ asignacion_actual.motorista }}<br>
+                            <strong>Fecha Asignación:</strong> {{ asignacion_actual.fecha_asignacion|date:"d/m/Y H:i" }}<br>
+                            <strong>Duración:</strong> {{ asignacion_actual.duracion_asignacion.days }} días
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de reemplazo -->
+            <div class="card shadow">
+                <div class="card-header py-3 bg-info">
+                    <h6 class="m-0 font-weight-bold text-white">Seleccionar Nuevo Motorista</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Se finalizará la asignación actual y se creará una nueva con el motorista seleccionado.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-exchange"></i> Reemplazar Motorista
+                            </button>
+                            <a href="{% url 'asignacion:listar_farmacias' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

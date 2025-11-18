@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Confirmar Reactivación de Motorista{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h1 class="h3 m-0 font-weight-bold text-primary">Confirmar Reactivación</h1>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro de que quieres reactivar al motorista <strong>{{ object.nombre_completo }}</strong> con patente <strong>{{ object.patente }}</strong>?</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <a href="{{ request.META.HTTP_REFERER|default:'moto:list' }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Sí, reactivar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

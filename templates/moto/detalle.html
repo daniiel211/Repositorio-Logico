@@ -1,0 +1,198 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Detalle - {{ moto.patente }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-motorcycle"></i> 
+                {{ moto.marca }} {{ moto.modelo }} - {{ moto.patente }}
+            </h1>
+            <div class="btn-group">
+                <a href="{% url 'moto:editar' moto.patente %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                {% if moto.activo %}
+                <a href="{% url 'moto:eliminar' moto.patente %}" class="btn btn-warning">
+                    <i class="fas fa-ban"></i> Desactivar
+                </a>
+                {% else %}
+                <a href="{% url 'moto:reactivar' moto.patente %}" class="btn btn-success">
+                    <i class="fas fa-check"></i> Reactivar
+                </a>
+                {% endif %}
+                <a href="{% url 'moto:listar' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información Principal -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i> Información de la Moto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Patente:</strong><br>
+                        <span class="h5">{{ moto.patente }}</span>
+                    </div>
+                    <div class="col-6">
+                        <strong>Estado:</strong><br>
+                        {% if moto.activo %}
+                            <span class="badge bg-success">Activa</span>
+                        {% else %}
+                            <span class="badge bg-warning">Inactiva</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Marca:</strong><br>
+                        {{ moto.marca }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Modelo:</strong><br>
+                        {{ moto.modelo }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Año:</strong><br>
+                        {{ moto.año }}
+                    </div>
+                    <div class="col-6">
+                        <strong>Color:</strong><br>
+                        {{ moto.color }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>N° Chasis:</strong><br>
+                        {{ moto.numChasis }}
+                    </div>
+                    <div class="col-6">
+                        <strong>N° Motor:</strong><br>
+                        {{ moto.motor }}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Propietario:</strong><br>
+                        <span class="badge bg-{% if moto.propietario == 'EMPRESA' %}info{% else %}secondary{% endif %}">
+                            {{ moto.get_propietario_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt"></i> Documentos
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Permiso de Circulación -->
+                <div class="mb-3">
+                    <strong>Permiso de Circulación:</strong><br>
+                    {% if moto.permisoCirculacion %}
+                        <a href="{{ moto.permisoCirculacion.url }}" 
+                           target="_blank" class="btn btn-outline-primary btn-sm mt-1">
+                            <i class="fas fa-file-pdf"></i> Ver Documento
+                        </a>
+                    {% else %}
+                        <span class="text-danger">No cargado</span>
+                    {% endif %}
+                </div>
+
+                <!-- Seguro -->
+                <div class="mb-3">
+                    <strong>Póliza de Seguro:</strong><br>
+                    {% if moto.seguro %}
+                        <a href="{{ moto.seguro.url }}" 
+                           target="_blank" class="btn btn-outline-primary btn-sm mt-1">
+                            <i class="fas fa-file-pdf"></i> Ver Documento
+                        </a>
+                    {% else %}
+                        <span class="text-danger">No cargado</span>
+                    {% endif %}
+                </div>
+
+                <!-- Revisión Técnica -->
+                <div class="mb-3">
+                    <strong>Revisión Técnica:</strong><br>
+                    {% if moto.revisionTecnica %}
+                        <a href="{{ moto.revisionTecnica.url }}" 
+                           target="_blank" class="btn btn-outline-primary btn-sm mt-1">
+                            <i class="fas fa-file-pdf"></i> Ver Documento
+                        </a>
+                    {% else %}
+                        <span class="text-danger">No cargado</span>
+                    {% endif %}
+                </div>
+
+                <!-- Estado de Documentos -->
+                <div class="alert {% if moto.documentos_completos %}alert-success{% else %}alert-warning{% endif %} mt-3">
+                    <i class="fas {% if moto.documentos_completos %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+                    {% if moto.documentos_completos %}
+                        Todos los documentos están cargados y en orden.
+                    {% else %}
+                        Faltan documentos por cargar.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de Auditoría -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i> Información de Auditoría
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Creado por:</strong><br>
+                        {{ moto.creado_por|default:"Sistema" }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Fecha creación:</strong><br>
+                        {{ moto.fecha_creacion|date:"d/m/Y H:i" }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Modificado por:</strong><br>
+                        {{ moto.modificado_por|default:"No modificado" }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Última modificación:</strong><br>
+                        {{ moto.fecha_modificacion|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

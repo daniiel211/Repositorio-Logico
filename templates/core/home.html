@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Inicio - LogiCo{% endblock %}
+
+{% block page_title %}Sistema de Gestión Logística{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Bienvenido a LogiCo</h1>
+            <p class="lead">Sistema de gestión logística para automatizar los procesos de despacho a domicilio de farmacias Cruz Verde.</p>
+            <hr class="my-4">
+            <p>Desarrollado para Discopro Ltda. para reemplazar la gestión manual basada en planillas Excel.</p>
+            
+            {% if not user.is_authenticated %}
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg" href="{% url 'usuario:login' %}" role="button">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+                <a class="btn btn-outline-secondary btn-lg" href="{% url 'core:acerca' %}" role="button">
+                    <i class="fas fa-info-circle"></i> Más Información
+                </a>
+            </div>
+            {% else %}
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg" href="{% url 'core:dashboard' %}" role="button">
+                    <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-clinic-medical fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Gestión de Farmacias</h5>
+                <p class="card-text">Administra toda la información de las farmacias Cruz Verde.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-motorcycle fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Control de Motoristas</h5>
+                <p class="card-text">Gestiona el personal de reparto y sus asignaciones.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-shipping-fast fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Seguimiento de Movimientos</h5>
+                <p class="card-text">Monitorea en tiempo real todos los despachos y entregas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

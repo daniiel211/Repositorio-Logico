@@ -1,0 +1,61 @@
+<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+    <div class="position-sticky pt-3">
+        {% if request.user.rol == 'Operador' %}
+        <!-- =================== SIDEBAR PARA OPERADOR =================== -->
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'core:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    Inicio Operador
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:list' %}">
+                    <i class="fas fa-list-ul"></i>
+                    Ver Movimientos
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Registrar Movimiento</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li><a class="nav-link" href="{% url 'movimiento:crear' 'directo' %}"><i class="fas fa-truck fa-fw"></i> Directo</a></li>
+            <li><a class="nav-link" href="{% url 'movimiento:crear' 'receta' %}"><i class="fas fa-receipt fa-fw"></i> Receta</a></li>
+            <li><a class="nav-link" href="{% url 'movimiento:crear' 'traslado' %}"><i class="fas fa-exchange-alt fa-fw"></i> Traslado</a></li>
+        </ul>
+
+        {% else %}
+        <!-- =================== SIDEBAR PARA ADMINISTRADOR =================== -->
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'core:dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Gestión</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item"><a class="nav-link" href="{% url 'farmacia:list' %}"><i class="fas fa-clinic-medical"></i> Farmacias</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'motorista:list' %}"><i class="fas fa-id-card"></i> Motoristas</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'moto:listar' %}"><i class="fas fa-motorcycle"></i> Motos</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'asignacion:dashboard' %}"><i class="fas fa-tasks"></i> Asignaciones</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'movimiento:dashboard' %}"><i class="fas fa-shipping-fast"></i> Movimientos</a></li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Reportes</span>
+        </h6>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-muted" href="#"><i class="fas fa-chart-bar"></i> Reportes (Próximamente)</a>
+            </li>
+        </ul>
+        {% endif %}
+    </div>
+</nav>

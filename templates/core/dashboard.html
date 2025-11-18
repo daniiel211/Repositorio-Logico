@@ -1,0 +1,360 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }} - LogiCo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'asignacion:dashboard' %}" class="btn btn-primary btn-icon-split">
+            <span class="icon text-white-50">
+                <i class="fas fa-tasks"></i>
+            </span>
+            <span class="text">Módulo Asignaciones</span>
+        </a>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i> 
+        Algunos datos no pudieron cargarse: {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <!-- Farmacias Activas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Farmacias Activas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_farmacias }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clinic-medical fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motoristas Activos -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Motoristas Activos</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motoristas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motos Activas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Motos Activas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motos }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-motorcycle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Asignaciones Activas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Asignaciones Activas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ asignaciones_moto_activas }} Moto / {{ asignaciones_farmacia_activas }} Farmacia
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-link fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="row">
+        <!-- Motoristas con Moto -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Motoristas con Moto</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_moto }}</div>
+                            <div class="text-xs text-muted">
+                                {{ motoristas_con_moto|floatformat:0 }} de {{ total_motoristas }} ({{ motoristas_con_moto|floatformat:0 }}%)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motoristas en Farmacia -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                Motoristas en Farmacia</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_farmacia }}</div>
+                            <div class="text-xs text-muted">
+                                {{ motoristas_con_farmacia|floatformat:0 }} de {{ total_motoristas }} ({{ motoristas_con_farmacia|floatformat:0 }}%)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eficiencia -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Tasa de Cobertura</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if total_farmacias > 0 %}
+                                    {{ motoristas_con_farmacia|floatformat:1 }}:1
+                                {% else %}
+                                    0:1
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-muted">
+                                Motoristas por farmacia
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas - Módulo Asignaciones</h6>
+                    <a href="{% url 'core:estadisticas_avanzadas' %}" class="btn btn-info btn-sm">
+                        <i class="fas fa-chart-bar"></i> Ver Estadísticas Avanzadas
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="font-weight-bold text-primary">Asignaciones de Motos</h6>
+                            <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-outline-primary btn-sm mb-2">
+                                <i class="fas fa-plus"></i> Nueva Asignación
+                            </a>
+                            <a href="{% url 'asignacion:listar_motos' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                                <i class="fas fa-list"></i> Ver Todas
+                            </a>
+                            <p class="small text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                {{ asignaciones_moto_activas }} asignaciones activas
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="font-weight-bold text-success">Asignaciones de Farmacias</h6>
+                            <a href="{% url 'asignacion:crear_farmacia' %}" class="btn btn-outline-success btn-sm mb-2">
+                                <i class="fas fa-plus"></i> Nueva Asignación
+                            </a>
+                            <a href="{% url 'asignacion:listar_farmacias' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                                <i class="fas fa-list"></i> Ver Todas
+                            </a>
+                            <p class="small text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                {{ asignaciones_farmacia_activas }} asignaciones activas
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Moto Assignments -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Últimas Asignaciones de Motos</h6>
+                </div>
+                <div class="card-body">
+                    {% if ultimas_asignaciones_moto %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Motorista</th>
+                                    <th>Moto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for asignacion in ultimas_asignaciones_moto %}
+                                <tr>
+                                    <td>
+                                        <small>{{ asignacion.motorista.nombre_completo }}</small><br>
+                                        <span class="text-muted smaller">{{ asignacion.motorista.rut }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ asignacion.moto.patente }}</small><br>
+                                        <span class="text-muted smaller">{{ asignacion.moto.marca }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ asignacion.estado|lower }}">
+                                            {{ asignacion.estado }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No hay asignaciones recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Pharmacy Assignments -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Últimas Asignaciones de Farmacias</h6>
+                </div>
+                <div class="card-body">
+                    {% if ultimas_asignaciones_farmacia %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Motorista</th>
+                                    <th>Farmacia</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for asignacion in ultimas_asignaciones_farmacia %}
+                                <tr>
+                                    <td>
+                                        <small>{{ asignacion.motorista.nombre_completo }}</small><br>
+                                        <span class="text-muted smaller">{{ asignacion.motorista.rut }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ asignacion.farmacia.nombre }}</small><br>
+                                        <span class="text-muted smaller">{{ asignacion.farmacia.comuna }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ asignacion.estado|lower }}">
+                                            {{ asignacion.estado }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No hay asignaciones recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Pharmacies -->
+    {% if farmacias_top %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Farmacias con Más Motoristas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for farmacia in farmacias_top %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-left-info">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ farmacia.nombre }}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">{{ farmacia.direccion }}</small><br>
+                                        <span class="badge badge-primary">{{ farmacia.num_motoristas }} motorista(s)</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Actualizar datos cada 60 segundos
+        setInterval(function() {
+            location.reload();
+        }, 60000);
+    });
+</script>
+{% endblock %}

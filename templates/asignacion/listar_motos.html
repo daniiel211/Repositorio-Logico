@@ -1,0 +1,139 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Asignaciones de Moto{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">Asignaciones de Moto</h1>
+        <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Asignación
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <div class="form-group mr-3 mb-2">
+                    <label for="estado" class="mr-2">Estado:</label>
+                    <select name="estado" id="estado" class="form-control">
+                        <option value="">Todos</option>
+                        {% for estado in estados %}
+                        <option value="{{ estado.0 }}" {% if request.GET.estado == estado.0 %}selected{% endif %}>
+                            {{ estado.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <label for="motorista" class="mr-2">Motorista:</label>
+                    <input type="text" name="motorista" id="motorista" class="form-control" 
+                           placeholder="RUT motorista" value="{{ request.GET.motorista }}">
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <label for="moto" class="mr-2">Moto:</label>
+                    <input type="text" name="moto" id="moto" class="form-control" 
+                           placeholder="Patente" value="{{ request.GET.moto }}">
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <a href="{% url 'asignacion:listar_motos' %}" class="btn btn-secondary mb-2 ml-2">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de asignaciones -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Asignaciones</h6>
+        </div>
+        <div class="card-body">
+            {% if asignaciones %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Motorista</th>
+                            <th>Moto</th>
+                            <th>Estado</th>
+                            <th>Fecha Asignación</th>
+                            <th>Duración</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asignacion in asignaciones %}
+                        <tr>
+                            <td>{{ asignacion.id }}</td>
+                            <td>{{ asignacion.motorista }}</td>
+                            <td>{{ asignacion.moto }}</td>
+                            <td>
+                                <span class="badge badge-{% if asignacion.estado == 'ACTIVA' %}success{% elif asignacion.estado == 'FINALIZADA' %}secondary{% else %}warning{% endif %}">
+                                    {{ asignacion.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if asignacion.estado == 'ACTIVA' %}
+                                    {{ asignacion.duracion_asignacion.days }} días
+                                {% else %}
+                                    {{ asignacion.duracion_asignacion.days }} días
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'asignacion:detalle_moto' asignacion.id %}" 
+                                       class="btn btn-info" title="Ver detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if asignacion.estado == 'ACTIVA' %}
+                                    <a href="{% url 'asignacion:finalizar_moto' asignacion.id %}" 
+                                       class="btn btn-warning" title="Finalizar asignación">
+                                        <i class="fas fa-flag-checkered"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-motorcycle fa-3x text-gray-300 mb-3"></i>
+                <h5 class="text-gray-500">No se encontraron asignaciones de moto</h5>
+                <p class="text-muted">No hay asignaciones que coincidan con los criterios de búsqueda.</p>
+                <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Primera Asignación
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Inicializar DataTables
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+            },
+            "order": [[0, "desc"]]
+        });
+    });
+</script>
+{% endblock %}
