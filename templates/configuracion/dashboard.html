@@ -1,0 +1,146 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Configuración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Dashboard de Configuración</h1>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Incidencias Abiertas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_incidencias_abiertas }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Rangos Configurados
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_rangos_configurados }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incidencias Pendientes (Solo para supervisores y gerentes) -->
+    {% if user.rol in 'supervisor,gerente' and incidencias_pendientes %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Incidencias Pendientes</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Movimiento</th>
+                                    <th>Tipo</th>
+                                    <th>Reportada por</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incidencia in incidencias_pendientes %}
+                                <tr>
+                                    <td>{{ incidencia.id }}</td>
+                                    <td>#{{ incidencia.movimiento.idMovimiento }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ incidencia.tipo_incidencia.gravedad|lower }}">
+                                            {{ incidencia.tipo_incidencia.nombre }}
+                                        </span>
+                                    </td>
+                                    <td>{{ incidencia.reportada_por.get_full_name }}</td>
+                                    <td>{{ incidencia.fecha_incidencia|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-warning">{{ incidencia.get_estado_display }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'configuracion:detalle_incidencia' incidencia.id %}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Acciones Rápidas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'configuracion:reportar_incidencia' %}" 
+                               class="btn btn-primary btn-block">
+                                <i class="fas fa-plus-circle"></i> Reportar Incidencia
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'configuracion:lista_incidencias' %}" 
+                               class="btn btn-info btn-block">
+                                <i class="fas fa-list"></i> Ver Todas las Incidencias
+                            </a>
+                        </div>
+                        {% if user.rol == 'gerente' %}
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'configuracion:gestion_rangos' %}" 
+                               class="btn btn-success btn-block">
+                                <i class="fas fa-cog"></i> Gestionar Rangos
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Reportar Incidencia - Configuración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Reportar Nueva Incidencia</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información de la Incidencia</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="incidenciaForm">
+                        {% csrf_token %}
+                        
+                        {% if movimiento %}
+                        <div class="alert alert-info">
+                            <strong>Movimiento relacionado:</strong> #{{ movimiento.idMovimiento }} - {{ movimiento.get_tipoMovimiento_display }}
+                        </div>
+                        <input type="hidden" name="movimiento_id" value="{{ movimiento.idMovimiento }}">
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.tipo_incidencia.id_for_label }}" class="font-weight-bold">
+                                        Tipo de Incidencia *
+                                    </label>
+                                    {{ form.tipo_incidencia }}
+                                    {% if form.tipo_incidencia.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.tipo_incidencia.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Seleccione el tipo de incidencia que mejor describa el problema.
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.asignada_a.id_for_label }}" class="font-weight-bold">
+                                        Asignar a
+                                    </label>
+                                    {{ form.asignada_a }}
+                                    {% if form.asignada_a.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.asignada_a.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Opcional: Asigne esta incidencia a un supervisor específico.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.descripcion.id_for_label }}" class="font-weight-bold">
+                                Descripción Detallada *
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                            <div class="text-danger small">
+                                {{ form.descripcion.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Describa en detalle la incidencia, incluyendo fecha, hora, ubicación y cualquier información relevante.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.evidencia.id_for_label }}" class="font-weight-bold">
+                                Evidencia (Opcional)
+                            </label>
+                            <div class="custom-file">
+                                {{ form.evidencia }}
+                                <label class="custom-file-label" for="{{ form.evidencia.id_for_label }}">
+                                    Seleccionar archivo...
+                                </label>
+                            </div>
+                            {% if form.evidencia.errors %}
+                            <div class="text-danger small">
+                                {{ form.evidencia.errors }}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Formatos permitidos: imágenes (JPG, PNG), PDF, documentos. Tamaño máximo: 10MB.
+                            </small>
+                        </div>
+
+                        <!-- Información de Gravedad Dinámica -->
+                        <div class="alert alert-warning" id="gravedadInfo" style="display: none;">
+                            <strong>Nivel de Gravedad:</strong> <span id="gravedadText"></span>
+                            <br>
+                            <span id="gravedadDescripcion"></span>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Reportar Incidencia
+                            </button>
+                            <a href="{% if movimiento %}{% url 'movimientos:detalle_movimiento' movimiento.idMovimiento %}{% else %}{% url 'configuracion:lista_incidencias' %}{% endif %}" 
+                               class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Información de Tipos de Incidencia -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Tipos de Incidencia</h6>
+                </div>
+                <div class="card-body">
+                    {% for tipo in tipos_incidencia %}
+                    <div class="mb-3 p-2 border rounded">
+                        <h6 class="font-weight-bold mb-1">
+                            <span class="badge badge-{{ tipo.gravedad|lower }}">{{ tipo.get_gravedad_display }}</span>
+                            {{ tipo.nombre }}
+                        </h6>
+                        <p class="small text-muted mb-1">{{ tipo.descripcion }}</p>
+                        {% if tipo.requiere_autorizacion %}
+                        <span class="badge badge-warning">Requiere Autorización</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No hay tipos de incidencia configurados.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Guía Rápida -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Guía para Reportar</h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold">Antes de reportar:</h6>
+                    <ul class="small pl-3">
+                        <li>Verifique que la información sea precisa</li>
+                        <li>Incluya todos los detalles relevantes</li>
+                        <li>Adjunte evidencia si está disponible</li>
+                        <li>Sea específico en la descripción</li>
+                    </ul>
+                    
+                    <h6 class="font-weight-bold mt-3">Proceso de seguimiento:</h6>
+                    <ul class="small pl-3">
+                        <li>Recibirá un número de seguimiento</li>
+                        <li>Será notificado sobre actualizaciones</li>
+                        <li>Puede ver el progreso en cualquier momento</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Actualizar label de archivo seleccionado
+    $('.custom-file-input').on('change', function() {
+        var fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    });
+
+    // Cargar información de gravedad cuando se selecciona un tipo de incidencia
+    $('#id_tipo_incidencia').on('change', function() {
+        var tipoId = $(this).val();
+        if (tipoId) {
+            // Aquí podrías hacer una llamada AJAX para obtener la información del tipo
+            // Por ahora, mostraremos información básica basada en el texto seleccionado
+            var selectedText = $(this).find('option:selected').text();
+            var gravedadMatch = selectedText.match(/\[(BAJA|MEDIA|ALTA|CRITICA)\]/);
+            
+            if (gravedadMatch) {
+                var gravedad = gravedadMatch[1];
+                var gravedadInfo = {
+                    'BAJA': { text: 'Baja', desc: 'Impacto mínimo en operaciones', class: 'success' },
+                    'MEDIA': { text: 'Media', desc: 'Impacto moderado en operaciones', class: 'warning' },
+                    'ALTA': { text: 'Alta', desc: 'Impacto significativo en operaciones', class: 'danger' },
+                    'CRITICA': { text: 'Crítica', desc: 'Impacto crítico que detiene operaciones', class: 'dark' }
+                };
+                
+                $('#gravedadText').text(gravedadInfo[gravedad].text);
+                $('#gravedadDescripcion').text(gravedadInfo[gravedad].desc);
+                $('#gravedadInfo').removeClass('alert-success alert-warning alert-danger alert-dark')
+                                 .addClass('alert-' + gravedadInfo[gravedad].class)
+                                 .show();
+            }
+        } else {
+            $('#gravedadInfo').hide();
+        }
+    });
+
+    // Validación del formulario
+    $('#incidenciaForm').on('submit', function(e) {
+        var descripcion = $('#id_descripcion').val().trim();
+        var tipoIncidencia = $('#id_tipo_incidencia').val();
+        
+        if (!tipoIncidencia) {
+            e.preventDefault();
+            alert('Por favor, seleccione un tipo de incidencia.');
+            $('#id_tipo_incidencia').focus();
+            return false;
+        }
+        
+        if (descripcion.length < 10) {
+            e.preventDefault();
+            alert('Por favor, proporcione una descripción más detallada (mínimo 10 caracteres).');
+            $('#id_descripcion').focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

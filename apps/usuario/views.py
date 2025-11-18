@@ -8,6 +8,10 @@ from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm, PasswordChan
 from .models import Usuario
 
 def login_view(request):
+    """
+    Vista personalizada para inicio de sesión.
+    Redirige usuarios autenticados al dashboard.
+    """
     if request.user.is_authenticated:
         return redirect('usuario:dashboard')
 
@@ -33,7 +37,10 @@ def login_view(request):
 
 @login_required
 def dashboard(request):
-    """Dashboard principal con redirección por rol"""
+    """
+    Dashboard principal con redirección por rol.
+    Renderiza templates específicos según el rol del usuario.
+    """
     user = request.user
 
     if user.es_gerente or user.is_superuser:
@@ -45,18 +52,22 @@ def dashboard(request):
     elif user.es_motorista:
         return render(request, 'usuario/dashboard_motorista.html')
     else:
-        return render(request, 'usuario/dashboard_base.html')
+        return render(request, 'usuario/base_dashboard.html')
 
 @login_required
 @require_roles(['gerente'])
 def lista_usuarios(request):
-    """Lista todos los usuarios con opciones de búsqueda y filtro"""
+    """
+    Lista todos los usuarios con opciones de búsqueda y filtro.
+    Accesible solo para gerentes y superusuarios.
+    """
     query = request.GET.get('q', '')
     rol_filter = request.GET.get('rol', '')
     estado_filter = request.GET.get('estado', '')
 
     usuarios = Usuario.objects.all()
 
+    # Aplicar filtros de búsqueda
     if query:
         usuarios = usuarios.filter(
             Q(username__icontains=query) |
@@ -89,7 +100,10 @@ def lista_usuarios(request):
 @login_required
 @require_roles(['gerente'])
 def crear_usuario(request):
-    """Crear nuevo usuario"""
+    """
+    Crear nuevo usuario en el sistema.
+    Accesible solo para gerentes y superusuarios.
+    """
     if request.method == 'POST':
         form = UsuarioCreateForm(request.POST)
         if form.is_valid():
@@ -106,7 +120,10 @@ def crear_usuario(request):
 @login_required
 @require_roles(['gerente'])
 def editar_usuario(request, usuario_id):
-    """Editar usuario existente"""
+    """
+    Editar usuario existente.
+    Accesible solo para gerentes y superusuarios.
+    """
     usuario = get_object_or_404(Usuario, id=usuario_id)
 
     if request.method == 'POST':
@@ -129,7 +146,10 @@ def editar_usuario(request, usuario_id):
 @login_required
 @require_roles(['gerente'])
 def desactivar_usuario(request, usuario_id):
-    """Desactivar usuario"""
+    """
+    Desactivar usuario (soft delete).
+    Impide que un gerente se desactive a sí mismo.
+    """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if usuario == request.user:
@@ -147,7 +167,9 @@ def desactivar_usuario(request, usuario_id):
 @login_required
 @require_roles(['gerente'])
 def activar_usuario(request, usuario_id):
-    """Activar usuario"""
+    """
+    Activar usuario previamente desactivado.
+    """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if request.method == 'POST':
@@ -160,7 +182,10 @@ def activar_usuario(request, usuario_id):
 
 @login_required
 def perfil_usuario(request):
-    """Perfil del usuario actual"""
+    """
+    Perfil del usuario actual.
+    Accesible para todos los usuarios autenticados.
+    """
     usuario = request.user
 
     if request.method == 'POST':
@@ -178,7 +203,10 @@ def perfil_usuario(request):
 
 @login_required
 def cambiar_password(request):
-    """Cambiar contraseña del usuario actual"""
+    """
+    Cambiar contraseña del usuario actual.
+    Accesible para todos los usuarios autenticados.
+    """
     if request.method == 'POST':
         form = PasswordChangeCustomForm(request.user, request.POST)
         if form.is_valid():
@@ -196,6 +224,9 @@ def cambiar_password(request):
 @login_required
 @require_roles(['gerente'])
 def detalle_usuario(request, usuario_id):
-    """Ver detalles de un usuario específico"""
+    """
+    Ver detalles de un usuario específico.
+    Accesible solo para gerentes y superusuarios.
+    """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'usuario/detalle_usuario.html', {'usuario': usuario})

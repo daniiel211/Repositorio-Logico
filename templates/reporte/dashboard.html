@@ -1,0 +1,82 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Sistema de Reportes - LogiCo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Header del Reporte -->
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Sistema de Reportes - LogiCo
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Seleccione el módulo para generar reportes</p>
+                    
+                    <!-- Información del Usuario -->
+                    <div class="alert alert-info">
+                        <strong>Usuario:</strong> {{ user.get_full_name }} | 
+                        <strong>Rol:</strong> {{ user.get_rol_display }}
+                    </div>
+                    
+                    <!-- Tarjetas de Módulos -->
+                    <div class="row">
+                        {% for modulo in modulos_disponibles %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-capitalize text-primary">{{ modulo }}</h5>
+                                    <p class="card-text text-muted">Generar reportes del módulo {{ modulo }}</p>
+                                    <a href="{% url 'reporte:'|add:modulo %}" class="btn btn-primary">
+                                        <i class="fas fa-chart-line me-2"></i>Acceder a Reportes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-warning text-center">
+                                <h5>No tiene permisos para generar reportes</h5>
+                                <p>Contacte al administrador del sistema.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Historial de Reportes -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-history me-2"></i>Historial de Reportes Generados
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-3">Consulte el historial de reportes que ha generado anteriormente.</p>
+                                    <a href="{% url 'reporte:historial' %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-list me-2"></i>Ver Historial Completo
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Scripts específicos para el dashboard de reportes
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard de reportes cargado correctamente');
+    });
+</script>
+{% endblock %}

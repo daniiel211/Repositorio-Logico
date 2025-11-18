@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Incidencia #{{ incidencia.id }} - Configuración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Incidencia #{{ incidencia.id }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Información de la Incidencia -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información de la Incidencia</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Movimiento:</strong> 
+                                <a href="{% url 'movimientos:detalle_movimiento' incidencia.movimiento.idMovimiento %}">
+                                    #{{ incidencia.movimiento.idMovimiento }}
+                                </a>
+                            </p>
+                            <p><strong>Tipo:</strong> 
+                                <span class="badge badge-{{ incidencia.tipo_incidencia.gravedad|lower }}">
+                                    {{ incidencia.tipo_incidencia.nombre }}
+                                </span>
+                            </p>
+                            <p><strong>Estado:</strong> 
+                                {% if incidencia.estado == 'REGISTRADA' %}
+                                    <span class="badge badge-warning">{{ incidencia.get_estado_display }}</span>
+                                {% elif incidencia.estado == 'EN_REVISION' %}
+                                    <span class="badge badge-info">{{ incidencia.get_estado_display }}</span>
+                                {% elif incidencia.estado == 'RESUELTA' %}
+                                    <span class="badge badge-success">{{ incidencia.get_estado_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-primary">{{ incidencia.get_estado_display }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Reportada por:</strong> {{ incidencia.reportada_por.get_full_name }}</p>
+                            <p><strong>Fecha de Incidencia:</strong> {{ incidencia.fecha_incidencia|date:"d/m/Y H:i" }}</p>
+                            {% if incidencia.asignada_a %}
+                            <p><strong>Asignada a:</strong> {{ incidencia.asignada_a.get_full_name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="font-weight-bold">Descripción:</h6>
+                    <p class="mb-4">{{ incidencia.descripcion|linebreaks }}</p>
+                    
+                    {% if incidencia.evidencia %}
+                    <h6 class="font-weight-bold">Evidencia:</h6>
+                    <a href="{{ incidencia.evidencia.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-download"></i> Descargar Evidencia
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resolución (si está resuelta) -->
+            {% if incidencia.estado == 'RESUELTA' %}
+            <div class="card shadow mb-4 border-left-success">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Resolución</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Resuelta por:</strong> {{ incidencia.resuelta_por.get_full_name }}</p>
+                            <p><strong>Fecha de Resolución:</strong> {{ incidencia.fecha_resolucion|date:"d/m/Y H:i" }}</p>
+                            {% if incidencia.tiempo_resolucion %}
+                            <p><strong>Tiempo de Resolución:</strong> {{ incidencia.tiempo_resolucion }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="font-weight-bold">Resolución:</h6>
+                    <p>{{ incidencia.resolucion|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de Resolución (para supervisores/gerentes) -->
+            {% if form and user.rol in 'supervisor,gerente' %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Resolver Incidencia</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'configuracion:resolver_incidencia' incidencia.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.resolucion.label_tag }}
+                            {{ form.resolucion }}
+                            {% if form.resolucion.errors %}
+                            <div class="text-danger">
+                                {{ form.resolucion.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Marcar como Resuelta
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Acciones -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'configuracion:lista_incidencias' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver a la lista
+                        </a>
+                        
+                        {% if user.rol in 'supervisor,gerente' and incidencia.estado != 'RESUELTA' %}
+                        <a href="{% url 'configuracion:resolver_incidencia' incidencia.id %}" class="btn btn-success">
+                            <i class="fas fa-check"></i> Resolver Incidencia
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.rol == 'gerente' %}
+                        <button class="btn btn-warning">
+                            <i class="fas fa-flag"></i> Escalar Incidencia
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Movimiento -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Movimiento Relacionado</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>ID:</strong> #{{ incidencia.movimiento.idMovimiento }}</p>
+                    <p><strong>Tipo:</strong> {{ incidencia.movimiento.get_tipoMovimiento_display }}</p>
+                    <p><strong>Estado:</strong> {{ incidencia.movimiento.get_estado_display }}</p>
+                    <p><strong>Motorista:</strong> {{ incidencia.movimiento.rutMotorista.nombre_completo }}</p>
+                    <p><strong>Farmacia Origen:</strong> {{ incidencia.movimiento.idFarmaciaOrigen.nombre }}</p>
+                    
+                    <a href="{% url 'movimientos:detalle_movimiento' incidencia.movimiento.idMovimiento %}" 
+                       class="btn btn-outline-primary btn-sm btn-block">
+                        <i class="fas fa-external-link-alt"></i> Ver Movimiento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

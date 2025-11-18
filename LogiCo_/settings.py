@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'apps.moto',
     'apps.asignacion',
     'apps.movimiento',
+    'apps.reporte',
+    'apps.configuracion',
 ]
 
 MIDDLEWARE = [
@@ -141,10 +143,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# Authentication
-LOGIN_URL = '/usuario/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/usuario/login/'
+# Configuración de login
+LOGIN_URL = 'usuario:login'
+LOGIN_REDIRECT_URL = 'usuario:dashboard'
+LOGOUT_REDIRECT_URL = 'usuario:login'
 
 # Session settings
 SESSION_COOKIE_AGE = 3600  # 1 hora

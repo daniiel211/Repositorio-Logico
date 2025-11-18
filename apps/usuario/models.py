@@ -3,8 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
 class Usuario(AbstractUser):
-    """Modelo principal de usuarios del sistema Logico"""
-
+    """
+    Modelo principal de usuarios personalizado para el sistema Logico.
+    Extiende AbstractUser de Django para mantener compatibilidad.
+    """
+    
+    # Choices para roles del sistema
     ROL_CHOICES = [
         ('gerente', 'Gerente General'),
         ('supervisor', 'Supervisor'),
@@ -40,7 +44,7 @@ class Usuario(AbstractUser):
         verbose_name='Última actualización'
     )
 
-    # Configuran campos existentes de AbstractUser
+    # SOBRESCRIBIR campos existentes de AbstractUser para traducción
     first_name = models.CharField(
         max_length=150,
         verbose_name='Nombre'
@@ -54,33 +58,41 @@ class Usuario(AbstractUser):
     )
 
     class Meta:
+        """Metadatos para el modelo Usuario"""
         db_table = 'USUARIO'
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
         ordering = ['-date_joined']
 
     def __str__(self):
+        """Representación en string del usuario"""
         return f"{self.first_name} {self.last_name} ({self.username})"
 
     def get_full_name(self):
+        """Obtiene el nombre completo del usuario"""
         return f"{self.first_name} {self.last_name}"
 
     @property
     def es_gerente(self):
+        """Verifica si el usuario tiene rol de gerente"""
         return self.rol == 'gerente'
 
     @property
     def es_supervisor(self):
+        """Verifica si el usuario tiene rol de supervisor"""
         return self.rol == 'supervisor'
 
     @property
     def es_operador(self):
+        """Verifica si el usuario tiene rol de operador"""
         return self.rol == 'operador'
 
     @property
     def es_motorista(self):
+        """Verifica si el usuario tiene rol de motorista"""
         return self.rol == 'motorista'
 
     @property
     def estado_display(self):
+        """Devuelve el estado del usuario en formato legible"""
         return "Activo" if self.is_active else "Inactivo"

@@ -1,0 +1,352 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Rangos de Acción - Configuración{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4">Gestión de Rangos de Acción</h1>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Rangos Configurados
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ rangos.count }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Distancia Promedio
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% with promedio=rangos|dictsortreversed:"distancia_maxima_km" %}
+                                    {% if promedio %}
+                                        {{ promedio.0.distancia_maxima_km|default:"0" }} km
+                                    {% else %}
+                                        0 km
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-route fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Horario Más Común
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                08:00 - 22:00
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Farmacias sin Configuración
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ farmacias_sin_configurar }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Rangos Configurados -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Rangos de Acción Configurados</h6>
+                    <a href="/admin/configuracion/rangoaccion/add/" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus-circle"></i> Nuevo Rango
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if rangos %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Farmacia</th>
+                                    <th>Distancia Máxima</th>
+                                    <th>Horario</th>
+                                    <th>Comunas Permitidas</th>
+                                    <th>Estado</th>
+                                    <th>Última Modificación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rango in rangos %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ rango.farmacia.nombre }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ rango.farmacia.direccion }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-info">{{ rango.distancia_maxima_km }} km</span>
+                                    </td>
+                                    <td>
+                                        {{ rango.horario_inicio|time:"H:i" }} - {{ rango.horario_fin|time:"H:i" }}
+                                    </td>
+                                    <td>
+                                        {% if rango.comunas_permitidas %}
+                                            <span class="badge badge-secondary" data-toggle="tooltip" 
+                                                   title="{{ rango.comunas_permitidas }}">
+                                                {{ rango.comunas_permitidas|truncatewords:3 }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-light">Todas las comunas</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rango.activo %}
+                                            <span class="badge badge-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ rango.fecha_modificacion|date:"d/m/Y H:i" }}</small>
+                                        <br>
+                                        <small class="text-muted">
+                                            por {{ rango.modificado_por.get_full_name|default:"Sistema" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="/admin/configuracion/rangoaccion/{{ rango.farmacia.id }}/change/" 
+                                               class="btn btn-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="/admin/configuracion/rangoaccion/{{ rango.farmacia.id }}/delete/" 
+                                               class="btn btn-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-info" 
+                                                    onclick="verDetalleRango('{{ rango.farmacia.id }}')"
+                                                    title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay rangos de acción configurados</h5>
+                        <p class="text-muted">Comience configurando los rangos de acción para las farmacias.</p>
+                        <a href="/admin/configuracion/rangoaccion/add/" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Configurar Primer Rango
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Farmacias sin Configuración -->
+    {% if farmacias_sin_configurar > 0 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4 border-left-warning">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Farmacias que Requieren Configuración
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Existen {{ farmacias_sin_configurar }} farmacias activas que no tienen rango de acción configurado.
+                        Esto puede afectar la asignación automática de movimientos.
+                    </div>
+                    <a href="/admin/configuracion/rangoaccion/add/" class="btn btn-warning">
+                        <i class="fas fa-cog"></i> Configurar Rangos Pendientes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Información de Configuración -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Directrices de Configuración</h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold">Distancias Recomendadas:</h6>
+                    <ul class="small">
+                        <li><strong>Zona Urbana:</strong> 5-10 km</li>
+                        <li><strong>Zona Semi-Urbana:</strong> 10-20 km</li>
+                        <li><strong>Zona Rural:</strong> 20-50 km</li>
+                    </ul>
+                    
+                    <h6 class="font-weight-bold mt-3">Horarios Sugeridos:</h6>
+                    <ul class="small">
+                        <li><strong>Horario Estándar:</strong> 08:00 - 22:00</li>
+                        <li><strong>Horario Extendido:</strong> 07:00 - 23:00</li>
+                        <li><strong>24 Horas:</strong> Configurar horarios específicos por necesidad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Impacto en el Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <h6 class="font-weight-bold">Los rangos de acción afectan:</h6>
+                    <ul class="small">
+                        <li>Asignación automática de motoristas</li>
+                        <li>Cálculo de rutas óptimas</li>
+                        <li>Tiempos de entrega estimados</li>
+                        <li>Autorizaciones de movimientos fuera de rango</li>
+                    </ul>
+                    
+                    <h6 class="font-weight-bold mt-3">Mejores Prácticas:</h6>
+                    <ul class="small">
+                        <li>Revisar periódicamente las distancias</li>
+                        <li>Ajustar según cambios en la infraestructura</li>
+                        <li>Considerar tráfico y condiciones de la zona</li>
+                        <li>Documentar cambios significativos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Detalles del Rango -->
+<div class="modal fade" id="detalleRangoModal" tabindex="-1" role="dialog" aria-labelledby="detalleRangoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalleRangoModalLabel">Detalles del Rango de Acción</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="detalleRangoContent">
+                <!-- Contenido cargado dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para ver detalles del rango (simulada)
+function verDetalleRango(farmaciaId) {
+    // En una implementación real, harías una llamada AJAX para obtener los detalles
+    $('#detalleRangoContent').html(`
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando detalles del rango...</p>
+        </div>
+    `);
+    $('#detalleRangoModal').modal('show');
+    
+    // Simular carga de datos
+    setTimeout(function() {
+        $('#detalleRangoContent').html(`
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Información de la Farmacia:</h6>
+                    <p><strong>ID:</strong> ${farmaciaId}</p>
+                    <p><strong>Estado:</strong> <span class="badge badge-success">Activo</span></p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Configuración Actual:</h6>
+                    <p><strong>Distancia Máxima:</strong> 10 km</p>
+                    <p><strong>Horario:</strong> 08:00 - 22:00</p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <h6>Estadísticas de Uso:</h6>
+                <p>Este rango ha sido utilizado en 45 movimientos este mes.</p>
+                <p>Tasa de éxito en entregas: 98%</p>
+            </div>
+        `);
+    }, 1000);
+}
+
+// Inicializar tooltips
+$(document).ready(function() {
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Inicializar DataTable
+    $('#dataTable').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
+        },
+        pageLength: 10,
+        responsive: true
+    });
+});
+</script>
+{% endblock %}

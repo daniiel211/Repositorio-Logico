@@ -11,7 +11,7 @@ urlpatterns = [
     path('', include('core.urls')),
     
     # Usuario y autenticación
-    path('usuario/', include('usuario.urls')),
+    path('usuario/', include('apps.usuario.urls')),
     
     # Módulos de gestión
     path('farmacia/', include('apps.farmacia.urls')),
@@ -19,6 +19,8 @@ urlpatterns = [
     path('moto/', include('apps.moto.urls')),
     path('asignacion/', include('apps.asignacion.urls')),
     path('movimiento/', include('apps.movimiento.urls')),
+    path('reporte/', include('apps.reporte.urls')),
+    path('configuracion/', include('apps.configuracion.urls')),
 ]
 
 # Servir archivos media en desarrollo

@@ -1,61 +1,238 @@
 <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
     <div class="position-sticky pt-3">
-        {% if request.user.rol == 'Operador' %}
-        <!-- =================== SIDEBAR PARA OPERADOR =================== -->
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="{% url 'core:dashboard' %}">
-                    <i class="fas fa-home"></i>
-                    Inicio Operador
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}">
-                    <i class="fas fa-list-ul"></i>
-                    Ver Movimientos
-                </a>
-            </li>
-        </ul>
-
+        <!-- Módulos para Gerente -->
+        {% if user.es_gerente or user.is_superuser %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span>Registrar Movimiento</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-            <li><a class="nav-link" href="{% url 'movimiento:crear' 'directo' %}"><i class="fas fa-truck fa-fw"></i> Directo</a></li>
-            <li><a class="nav-link" href="{% url 'movimiento:crear' 'receta' %}"><i class="fas fa-receipt fa-fw"></i> Receta</a></li>
-            <li><a class="nav-link" href="{% url 'movimiento:crear' 'traslado' %}"><i class="fas fa-exchange-alt fa-fw"></i> Traslado</a></li>
-        </ul>
-
-        {% else %}
-        <!-- =================== SIDEBAR PARA ADMINISTRADOR =================== -->
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link active" href="{% url 'core:dashboard' %}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    Dashboard
-                </a>
-            </li>
-        </ul>
-
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span>Gestión</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item"><a class="nav-link" href="{% url 'farmacia:list' %}"><i class="fas fa-clinic-medical"></i> Farmacias</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'motorista:list' %}"><i class="fas fa-id-card"></i> Motoristas</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'moto:listar' %}"><i class="fas fa-motorcycle"></i> Motos</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'asignacion:dashboard' %}"><i class="fas fa-tasks"></i> Asignaciones</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'movimiento:dashboard' %}"><i class="fas fa-shipping-fast"></i> Movimientos</a></li>
-        </ul>
-
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span>Reportes</span>
+            <span>Administración</span>
         </h6>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-muted" href="#"><i class="fas fa-chart-bar"></i> Reportes (Próximamente)</a>
+                <a class="nav-link" href="{% url 'usuario:lista_usuarios' %}">
+                    <i class="fas fa-users"></i>
+                    Gestión de Usuarios
+                </a>
             </li>
         </ul>
         {% endif %}
+
+        <!-- Módulos para Supervisor y Gerente -->
+        {% if user.es_supervisor or user.es_gerente or user.is_superuser %}
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Gestión del Sistema</span>
+        </h6>
+        <ul class="nav flex-column">
+            <!-- Gestión de Farmacias -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'farmacia:list' %}">
+                    <i class="fas fa-clinic-medical"></i>
+                    Farmacias
+                </a>
+            </li>
+            
+            <!-- Gestión de Motoristas -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'motorista:list' %}">
+                    <i class="fas fa-user-tie"></i>
+                    Motoristas
+                </a>
+            </li>
+            
+            <!-- Gestión de Motos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'moto:listar' %}">
+                    <i class="fas fa-motorcycle"></i>
+                    Motos
+                </a>
+            </li>
+            
+            <!-- Sistema de Asignaciones -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'asignacion:dashboard' %}">
+                    <i class="fas fa-tasks"></i>
+                    Asignaciones
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <!-- Módulos para Operadores, Supervisores y Gerentes -->
+        {% if user.es_operador or user.es_supervisor or user.es_gerente or user.is_superuser %}
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Operaciones</span>
+        </h6>
+        <ul class="nav flex-column">
+            <!-- Gestión de Movimientos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:dashboard' %}">
+                    <i class="fas fa-shipping-fast"></i>
+                    Dashboard Movimientos
+                </a>
+            </li>
+            
+            <!-- Lista de Movimientos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:list' %}">
+                    <i class="fas fa-list"></i>
+                    Lista de Movimientos
+                </a>
+            </li>
+            
+            <!-- Creación de Movimientos -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-plus-circle"></i>
+                    Crear Movimiento
+                </a>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'directo' %}">
+                            <i class="fas fa-bolt"></i> Movimiento Directo
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'receta' %}">
+                            <i class="fas fa-prescription"></i> Movimiento Receta
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'traslado' %}">
+                            <i class="fas fa-exchange-alt"></i> Movimiento Traslado
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <!-- Seguimiento (Pendiente de implementación) -->
+            <li class="nav-item">
+                <a class="nav-link text-muted" href="#" style="cursor: not-allowed;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Seguimiento en Tiempo Real
+                    <small class="badge bg-warning ms-1">Próximamente</small>
+                </a>
+            </li>
+            
+            <!-- Incidencias (Pendiente de implementación) -->
+            <li class="nav-item">
+                <a class="nav-link text-muted" href="#" style="cursor: not-allowed;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Gestión de Incidencias
+                    <small class="badge bg-warning ms-1">Próximamente</small>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <!-- Módulos para Gerente -->
+        {% if user.es_gerente or user.is_superuser %}
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Reportes y Analytics</span>
+        </h6>
+        <ul class="nav flex-column">
+            <!-- Dashboard de Reportes -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:dashboard' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    Dashboard Reportes
+                </a>
+            </li>
+            
+            <!-- Reportes Específicos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:farmacia' %}">
+                    <i class="fas fa-clinic-medical"></i>
+                    Reportes Farmacias
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:motorista' %}">
+                    <i class="fas fa-user-tie"></i>
+                    Reportes Motoristas
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:movimiento' %}">
+                    <i class="fas fa-shipping-fast"></i>
+                    Reportes Movimientos
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:asignacion' %}">
+                    <i class="fas fa-tasks"></i>
+                    Reportes Asignaciones
+                </a>
+            </li>
+            
+            <!-- Historial de Reportes -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'reporte:historial' %}">
+                    <i class="fas fa-history"></i>
+                    Historial de Reportes
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <!-- Módulos para Motoristas -->
+        {% if user.es_motorista %}
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Mis Entregas</span>
+        </h6>
+        <ul class="nav flex-column">
+            <!-- Movimientos Asignados al Motorista -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:list' %}?motorista={{ user.id }}">
+                    <i class="fas fa-list"></i>
+                    Mis Movimientos Asignados
+                </a>
+            </li>
+            
+            <!-- Dashboard Motorista -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'motorista:dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Mi Dashboard
+                </a>
+            </li>
+            
+            <!-- Ruta del Día (Pendiente de implementación) -->
+            <li class="nav-item">
+                <a class="nav-link text-muted" href="#" style="cursor: not-allowed;">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Mi Ruta del Día
+                    <small class="badge bg-warning ms-1">Próximamente</small>
+                </a>
+            </li>
+            
+            <!-- Historial de Entregas -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:list' %}?estado=completado&motorista={{ user.id }}">
+                    <i class="fas fa-history"></i>
+                    Mi Historial de Entregas
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <!-- Módulo Común para Todos los Usuarios -->
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Mi Cuenta</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'usuario:perfil' %}">
+                    <i class="fas fa-user-circle"></i>
+                    Mi Perfil
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'usuario:cambiar_password' %}">
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </a>
+            </li>
+        </ul>
     </div>
 </nav>
