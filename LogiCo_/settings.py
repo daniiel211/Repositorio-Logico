@@ -26,7 +26,8 @@ except ImportError:
 SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+TESTING = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
@@ -91,7 +92,7 @@ WSGI_APPLICATION = 'LogiCo_.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'logico_db',
+        'NAME': 'logico_db_test',
         'USER': 'root',
         'PASSWORD': 'admin',
         'HOST': 'localhost',
