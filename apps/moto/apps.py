@@ -12,8 +12,3 @@ class MotoConfig(AppConfig):
     name = 'apps.moto'
     verbose_name = 'Gestión de Motos'
     
-    def ready(self):
-        """
-        Método que se ejecuta cuando la aplicación está lista
-        """
-        pass
