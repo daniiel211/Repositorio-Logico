@@ -184,3 +184,13 @@ X_FRAME_OPTIONS = 'DENY'
 # Email configuration (para recuperación de contraseñas)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@logico.com'
+
+# Configuración específica para pruebas de seguridad
+SECURITY_CONFIG = {
+    'MAX_LOGIN_ATTEMPTS': 5,
+    'LOCKOUT_TIME': 900,  # 15 minutos
+    'SESSION_TIMEOUT': 1200,  # 20 minutos
+    'PASSWORD_MIN_LENGTH': 8,
+    'ALLOWED_FILE_TYPES': ['.pdf', '.jpg', '.jpeg', '.png'],
+    'MAX_FILE_SIZE': 10 * 1024 * 1024,  # 10MB
+}
