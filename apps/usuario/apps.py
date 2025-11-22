@@ -6,5 +6,5 @@ class UsuarioConfig(AppConfig):
     Define metadatos y comportamiento de la aplicación.
     """
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.usuario'  
+    name = 'usuario'  
     verbose_name = 'Gestión de Usuarios'
