@@ -142,10 +142,55 @@ LOGIN_URL = 'usuario:login'
 LOGIN_REDIRECT_URL = 'usuario:dashboard'
 LOGOUT_REDIRECT_URL = 'usuario:login'
 
-# Session settings
-SESSION_COOKIE_AGE = 3600  # 1 hora
+# CONFIGURACION DE SESIONES
+
+# Tiempo de vida de la sesion en segundos (1 hora de inactividad)
+SESSION_COOKIE_AGE = 3600
+# La sesion expira al cerrar el navegador
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# Solo enviar cookies de sesion por HTTPS (False en desarrollo, True en produccion)
+SESSION_COOKIE_SECURE = False
+# Proteccion contra acceso via JavaScript
+SESSION_COOKIE_HTTPONLY = True
+# Nombre personalizado de la cookie de sesion
+SESSION_COOKIE_NAME = 'sistematbc_sessionid'
+# Motor de almacenamiento de sesiones (base de datos)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# Guardar sesion en cada request para actualizar timeout
+SESSION_SAVE_EVERY_REQUEST = True
+
+# CONFIGURACION DE SEGURIDAD CSRF
+
+# Solo enviar cookies CSRF por HTTPS (False en desarrollo, True en produccion)
+CSRF_COOKIE_SECURE = False
+# Permitir acceso a cookie CSRF via JavaScript (necesario para AJAX)
+CSRF_COOKIE_HTTPONLY = False
+# Politica SameSite para cookies CSRF
+CSRF_COOKIE_SAMESITE = 'Lax'
+# No usar sesiones para almacenar tokens CSRF
+CSRF_USE_SESSIONS = False
+# Vista personalizada para fallos CSRF
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
+
+# HEADERS DE SEGURIDAD
+
+# Filtro XSS para navegadores compatibles
+SECURE_BROWSER_XSS_FILTER = True
+# Prevenir sniffing de tipo MIME
+SECURE_CONTENT_TYPE_NOSNIFF = True
+# Proteccion contra clickjacking
+X_FRAME_OPTIONS = 'DENY'
 
 # Email configuration (para recuperación de contraseñas)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@logico.com'
+
+# Configuración específica para pruebas de seguridad
+SECURITY_CONFIG = {
+    'MAX_LOGIN_ATTEMPTS': 5,
+    'LOCKOUT_TIME': 900,  # 15 minutos
+    'SESSION_TIMEOUT': 1200,  # 20 minutos
+    'PASSWORD_MIN_LENGTH': 8,
+    'ALLOWED_FILE_TYPES': ['.pdf', '.jpg', '.jpeg', '.png'],
+    'MAX_FILE_SIZE': 10 * 1024 * 1024,  # 10MB
+}
