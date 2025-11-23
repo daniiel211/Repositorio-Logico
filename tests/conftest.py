@@ -1,23 +1,11 @@
 # tests/conftest.py
 import pytest
-import os
-import django
-from django.conf import settings
-
-# Configurar Django ANTES de cualquier importación
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'LogiCo_.settings')
-
-if not settings.configured:
-    django.setup()
-
-from apps.motorista.models import Motorista
-from apps.moto.models import Moto
-from apps.usuario.models import Usuario
-from django.contrib.auth.models import Group, Permission
 
 @pytest.fixture
 def motorista_valido():
     """Fixture para crear un motorista válido"""
+    from apps.motorista.models import Motorista
+
     return Motorista(
         rut='12345678-9',
         nombre='Juan',
@@ -45,6 +33,8 @@ def motorista_valido():
 @pytest.fixture
 def moto_documentos_vigentes():
     """Fixture para crear moto con documentos vigentes"""
+    from apps.moto.models import Moto
+
     return Moto(
         patente='AB123CD',
         marca='Yamaha',
@@ -62,6 +52,8 @@ def moto_documentos_vigentes():
 @pytest.fixture
 def moto_documentos_vencidos():
     """Fixture para crear moto con documentos vencidos"""
+    from apps.moto.models import Moto
+
     return Moto(
         patente='EF456GH',
         marca='Honda',
@@ -79,6 +71,8 @@ def moto_documentos_vencidos():
 @pytest.fixture
 def usuario_gerente():
     """Fixture para crear usuario con rol gerente"""
+    from apps.usuario.models import Usuario
+
     return Usuario(
         username='gerente_test',
         email='gerente@test.com',
@@ -90,6 +84,8 @@ def usuario_gerente():
 @pytest.fixture
 def usuario_motorista():
     """Fixture para crear usuario con rol motorista"""
+    from apps.usuario.models import Usuario
+
     return Usuario(
         username='motorista_test',
         email='motorista@test.com',
@@ -101,11 +97,15 @@ def usuario_motorista():
 @pytest.fixture
 def grupo_gerente():
     """Fixture para crear grupo de gerentes"""
+    from django.contrib.auth.models import Group
+
     group, created = Group.objects.get_or_create(name='Gerentes')
     return group
 
 @pytest.fixture
 def grupo_motorista():
     """Fixture para crear grupo de motoristas"""
+    from django.contrib.auth.models import Group
+
     group, created = Group.objects.get_or_create(name='Motoristas')
     return group

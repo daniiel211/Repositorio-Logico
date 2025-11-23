@@ -14,17 +14,18 @@ def validar_patente_chilena(value):
     Valida formato de patente chilena
     Acepta formatos antiguos, nuevos y especiales
     """
+    value = value.upper().replace('-', '').replace(' ', '')
+
     patrones = [
-        r'^[A-Z]{2}-[A-Z]{2}-\d{2}$',  # Formato antiguo: AA-BB-11
-        r'^[A-Z]{4}\d{2}$',            # Formato nuevo: BBBB11
-        r'^CD\d{4}$',                  # Cuerpo diplomático
-        r'^CC\d{4}$',                  # Cuerpo consular
-        r'^FFAA\d{3}$',                # Fuerzas Armadas
-        r'^CARAB\d{4}$',               # Carabineros
-        r'^PDI\d{4}$',                 # Policía de Investigaciones
+        re.compile(r'^[A-Z]{4}\d{2}$'),            # Formato nuevo: BBBB11
+        re.compile(r'^[A-Z]{2}\d{4}$'),            # Formato antiguo: BB1122
+        re.compile(r'^CD\d{4}$'),                  # Cuerpo diplomático
+        re.compile(r'^CC\d{4}$'),                  # Cuerpo consular
+        re.compile(r'^FFAA\d{3}$'),                # Fuerzas Armadas
+        re.compile(r'^CARAB\d{4}$'),               # Carabineros
+        re.compile(r'^PDI\d{4}$'),                 # Policía de Investigaciones
     ]
     
-    # Verificar si coincide con algún patrón
     if not any(re.match(patron, value) for patron in patrones):
         raise ValidationError('Formato de patente chilena inválido')
 
@@ -121,6 +122,7 @@ class Moto(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL, 
         null=True,
+        blank=True,
         related_name='motos_modificadas'
     )
     fecha_modificacion = models.DateTimeField(auto_now=True)

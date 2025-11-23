@@ -1,5 +1,8 @@
 #requirements.txt
 
+pytest
+pytest-django
+pytest-html
 asgiref==3.10.0
 charset-normalizer==3.4.4
 crispy-bootstrap5==0.7
@@ -17,4 +20,4 @@ sqlparse==0.5.3
 tzdata==2025.2
 xlsxwriter==3.2.9
 #para equipos de Lab Inacap
-setuptools-80.9.0
+setuptools

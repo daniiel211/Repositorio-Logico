@@ -1,8 +1,6 @@
 # tests/test_moto.py
 import pytest
 from django.core.exceptions import ValidationError
-from apps.moto.models import Moto
-from apps.usuario.models import Usuario
 
 class TestMotoModel:
     """Suite de pruebas para el modelo Moto - PU-002"""
@@ -13,6 +11,8 @@ class TestMotoModel:
         """
         PU-002 - Caso 1: Moto con documentos vigentes debe retornar True
         """
+        from apps.moto.models import Moto
+
         # Configurar
         moto_documentos_vigentes.save()
         
@@ -27,6 +27,8 @@ class TestMotoModel:
         """
         PU-002 - Caso 2: Moto con documentos vencidos/faltantes debe retornar False
         """
+        from apps.moto.models import Moto
+
         # Configurar
         moto_documentos_vencidos.save()
         
@@ -41,7 +43,9 @@ class TestMotoModel:
         """
         PU-002 - Caso 3: Moto con algunos documentos faltantes debe retornar False
         """
+        from apps.moto.models import Moto
         # Crear usuario para campos de auditoría
+        from apps.usuario.models import Usuario
         usuario = Usuario.objects.create_user(
             username='moto_user',
             password='testpass123',
@@ -73,6 +77,8 @@ class TestMotoModel:
         """
         Prueba adicional: Validación de patentes chilenas válidas
         """
+        from apps.moto.models import Moto
+        from apps.usuario.models import Usuario
         usuario = Usuario.objects.create_user(
             username='patente_user',
             password='testpass123',
@@ -80,7 +86,7 @@ class TestMotoModel:
         )
         
         patentes_validas = [
-            'AB123CD',      # Formato nuevo
+            'ABCD12',       # Formato nuevo
             'CD1234',       # Cuerpo diplomático
             'FFAA123',      # Fuerzas Armadas
             'CARAB1234',    # Carabineros
@@ -97,7 +103,11 @@ class TestMotoModel:
                 motor='TEST123',
                 propietario='EMPRESA',
                 creado_por=usuario
-            )
+            )            
+            # Añadir valores para campos obligatorios
+            moto.permisoCirculacion = 'dummy.pdf'
+            moto.seguro = 'dummy.pdf'
+            moto.revisionTecnica = 'dummy.pdf'
             
             # No debe lanzar excepción
             moto.full_clean()
@@ -107,6 +117,8 @@ class TestMotoModel:
         """
         Prueba adicional: Validación de patentes chilenas inválidas
         """
+        from apps.moto.models import Moto
+        from apps.usuario.models import Usuario
         usuario = Usuario.objects.create_user(
             username='patente_inv_user',
             password='testpass123',
@@ -131,7 +143,11 @@ class TestMotoModel:
                 motor='TEST123',
                 propietario='EMPRESA',
                 creado_por=usuario
-            )
+            )            
+            # Añadir valores para campos obligatorios
+            moto.permisoCirculacion = 'dummy.pdf'
+            moto.seguro = 'dummy.pdf'
+            moto.revisionTecnica = 'dummy.pdf'
             
             with pytest.raises(ValidationError) as exc_info:
                 moto.full_clean()
@@ -144,6 +160,8 @@ class TestMotoModel:
         """
         Prueba adicional: Manager personalizado para motos activas e inactivas
         """
+        from apps.moto.models import Moto
+
         # Configurar
         moto_documentos_vigentes.save()
         moto_documentos_vencidos.activo = False

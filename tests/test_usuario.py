@@ -1,10 +1,5 @@
 # tests/test_usuario.py
 import pytest
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, Permission
-from django.test import Client
-
-User = get_user_model()
 
 class TestUsuarioModel:
     """Suite de pruebas para el modelo Usuario - PU-003"""
@@ -14,6 +9,9 @@ class TestUsuarioModel:
         """
         PU-003 - Caso 1: Usuario creado con rol específico
         """
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
         # Configurar
         usuario_gerente.set_password('testpassword123')
         usuario_gerente.save()
@@ -29,6 +27,9 @@ class TestUsuarioModel:
         """
         PU-003 - Caso 2: Propiedades de rol retornan valores correctos
         """
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
         # Probar todos los roles
         roles_test = [
             ('gerente', 'es_gerente'),
@@ -149,6 +150,7 @@ class TestUsuarioAutenticacion:
         """
         PU-003 - Caso 6: Grupos tienen permisos específicos asignados
         """
+        from django.contrib.auth.models import Permission
         # Configurar
         usuario_gerente.save()
         
@@ -189,6 +191,9 @@ class TestUsuarioIntegracion:
         """
         PU-003 - Caso 8: Flujo completo de autenticación y autorización
         """
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
         # 1. Crear usuario de prueba
         usuario = User.objects.create_user(
             username='test_integracion',
