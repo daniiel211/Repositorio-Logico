@@ -160,11 +160,33 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@logico.com'
 
-# Configuración de manejo de errores
-handler403 = 'apps.usuario.views.error_403'
-handler404 = 'apps.core.views.error_404'
-handler500 = 'apps.core.views.error_500'
+# Permisos personalizados para la aplicación Usuario
+PERMISOS_POR_ROL = {
+    'gerente': [
+        'usuario.add_usuario',
+        'usuario.change_usuario', 
+        'usuario.delete_usuario',
+        'usuario.view_usuario',
+    ],
+    'supervisor': [
+        'usuario.change_usuario',
+        'usuario.view_usuario',
+    ],
+    'operador': [
+        'usuario.view_usuario',
+    ],
+    'motorista': [
+        'usuario.view_usuario',
+    ]
+}
 
+# Configuración de grupos de permisos
+GRUPOS_PERMISOS = {
+    'Gerentes': PERMISOS_POR_ROL['gerente'],
+    'Supervisores': PERMISOS_POR_ROL['supervisor'], 
+    'Operadores': PERMISOS_POR_ROL['operador'],
+    'Motoristas': PERMISOS_POR_ROL['motorista'],
+}
 # Configuración de permisos
 PERMISSION_REQUIRED_MIXIN = {
     'raise_exception': True,

@@ -7,9 +7,7 @@
         <div class="col-md-8 mx-auto">
             <div class="card shadow">
                 <div class="card-header bg-warning text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-edit"></i> Editar Usuario: {{ usuario.get_full_name }}
-                    </h4>
+                    <h4 class="mb-0">Editar Usuario: {{ usuario.get_full_name }}</h4>
                 </div>
                 <div class="card-body">
                     <form method="post" id="usuarioForm">
@@ -24,11 +22,9 @@
                         {% endif %}
 
                         <div class="row">
-                            <!-- Columna Izquierda - Información Básica -->
                             <div class="col-md-6">
                                 <h5 class="text-primary mb-3">Información de Cuenta</h5>
                                 
-                                <!-- Username -->
                                 <div class="form-group">
                                     <label for="{{ form.username.id_for_label }}" class="font-weight-bold">
                                         {{ form.username.label }} *
@@ -43,7 +39,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Email -->
                                 <div class="form-group">
                                     <label for="{{ form.email.id_for_label }}" class="font-weight-bold">
                                         {{ form.email.label }} *
@@ -58,7 +53,7 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Rol -->
+                                {% if user.es_gerente or user.is_superuser %}
                                 <div class="form-group">
                                     <label for="{{ form.rol.id_for_label }}" class="font-weight-bold">
                                         {{ form.rol.label }} *
@@ -72,8 +67,9 @@
                                     </div>
                                     {% endif %}
                                 </div>
+                                {% endif %}
 
-                                <!-- Estado -->
+                                {% if user.es_gerente or user.is_superuser %}
                                 <div class="form-group">
                                     <div class="form-check">
                                         {{ form.is_active }}
@@ -89,13 +85,12 @@
                                     </div>
                                     {% endif %}
                                 </div>
+                                {% endif %}
                             </div>
 
-                            <!-- Columna Derecha - Información Personal -->
                             <div class="col-md-6">
                                 <h5 class="text-primary mb-3">Información Personal</h5>
                                 
-                                <!-- Nombre -->
                                 <div class="form-group">
                                     <label for="{{ form.first_name.id_for_label }}" class="font-weight-bold">
                                         {{ form.first_name.label }} *
@@ -110,7 +105,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Apellido -->
                                 <div class="form-group">
                                     <label for="{{ form.last_name.id_for_label }}" class="font-weight-bold">
                                         {{ form.last_name.label }} *
@@ -125,7 +119,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- RUT -->
                                 <div class="form-group">
                                     <label for="{{ form.rut.id_for_label }}" class="font-weight-bold">
                                         {{ form.rut.label }}
@@ -140,7 +133,6 @@
                                     {% endif %}
                                 </div>
 
-                                <!-- Teléfono -->
                                 <div class="form-group">
                                     <label for="{{ form.telefono.id_for_label }}" class="font-weight-bold">
                                         {{ form.telefono.label }}
@@ -178,11 +170,11 @@
                         <div class="form-group mt-4">
                             <div class="d-flex justify-content-between">
                                 <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Volver
+                                    Volver
                                 </a>
                                 <div>
                                     <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-save"></i> Guardar Cambios
+                                        Guardar Cambios
                                     </button>
                                 </div>
                             </div>
@@ -193,83 +185,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    $(document).ready(function() {
-        // Formatear RUT mientras se escribe
-        $('#id_rut').on('input', function() {
-            let rut = $(this).val().replace(/\./g, '').replace(/\-/g, '');
-            if (rut.length > 1) {
-                let cuerpo = rut.slice(0, -1);
-                let dv = rut.slice(-1).toUpperCase();
-                
-                cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                $(this).val(cuerpo + '-' + dv);
-            }
-        });
-
-        // Formatear teléfono mientras se escribe
-        $('#id_telefono').on('input', function() {
-            let telefono = $(this).val().replace(/\D/g, '');
-            if (telefono.length > 0) {
-                if (telefono.startsWith('56')) {
-                    telefono = '+' + telefono;
-                }
-                if (telefono.length > 3) {
-                    telefono = telefono.replace(/(\+56)(\d{0,2})(\d{0,4})(\d{0,4})/, function(match, p1, p2, p3, p4) {
-                        let result = p1;
-                        if (p2) result += ' ' + p2;
-                        if (p3) result += ' ' + p3;
-                        if (p4) result += ' ' + p4;
-                        return result;
-                    });
-                }
-                $(this).val(telefono.trim());
-            }
-        });
-
-        // Validación antes de enviar
-        $('#usuarioForm').on('submit', function() {
-            $('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Guardando...').prop('disabled', true);
-        });
-    });
-</script>
-
-<style>
-.form-control:focus {
-    border-color: #4e73df;
-    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.card {
-    border: none;
-    border-radius: 10px;
-}
-
-.card-header {
-    border-radius: 10px 10px 0 0 !important;
-}
-
-.btn {
-    border-radius: 5px;
-    font-weight: 500;
-}
-
-.alert {
-    border-radius: 8px;
-    border: none;
-}
-
-.form-check-input {
-    width: 1.2em;
-    height: 1.2em;
-    margin-top: 0.2em;
-}
-</style>
 {% endblock %}

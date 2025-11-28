@@ -14,6 +14,7 @@ django.setup()
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 
 User = get_user_model()
 
@@ -27,45 +28,28 @@ def crear_grupos_y_permisos():
     if created:
         print("Grupo 'Gerentes' creado")
     
+    # Permisos específicos para usuario
     permisos_gerente = [
         # Usuario (acceso completo)
-        'usuario.add_usuario', 'usuario.change_usuario', 'usuario.delete_usuario', 'usuario.view_usuario',
-        # Farmacia (acceso completo)
-        'farmacia.add_farmacia', 'farmacia.change_farmacia', 'farmacia.delete_farmacia', 'farmacia.view_farmacia',
-        # Motorista (acceso completo)
-        'motorista.add_motorista', 'motorista.change_motorista', 'motorista.delete_motorista', 'motorista.view_motorista',
-        # Moto (acceso completo)
-        'moto.add_moto', 'moto.change_moto', 'moto.delete_moto', 'moto.view_moto',
-        # Asignación (acceso completo)
-        'asignacion.add_asignacionfarmacia', 'asignacion.change_asignacionfarmacia', 'asignacion.delete_asignacionfarmacia', 'asignacion.view_asignacionfarmacia',
-        'asignacion.add_asignacionmoto', 'asignacion.change_asignacionmoto', 'asignacion.delete_asignacionmoto', 'asignacion.view_asignacionmoto',
-        'asignacion.can_manage_asignaciones',
-        # Movimiento (acceso completo)
-        'movimiento.add_movimiento', 'movimiento.change_movimiento', 'movimiento.delete_movimiento', 'movimiento.view_movimiento',
-        'movimiento.add_movimientodirecto', 'movimiento.change_movimientodirecto', 'movimiento.delete_movimientodirecto', 'movimiento.view_movimientodirecto',
-        'movimiento.add_movimientoreceta', 'movimiento.change_movimientoreceta', 'movimiento.delete_movimientoreceta', 'movimiento.view_movimientoreceta',
-        'movimiento.add_movimientotraslado', 'movimiento.change_movimientotraslado', 'movimiento.delete_movimientotraslado', 'movimiento.view_movimientotraslado',
-        'movimiento.add_movimientoreenvio', 'movimiento.change_movimientoreenvio', 'movimiento.delete_movimientoreenvio', 'movimiento.view_movimientoreenvio',
-        'movimiento.add_bitacoramovimiento', 'movimiento.change_bitacoramovimiento', 'movimiento.delete_bitacoramovimiento', 'movimiento.view_bitacoramovimiento',
-        'movimiento.add_estadomovimiento', 'movimiento.change_estadomovimiento', 'movimiento.delete_estadomovimiento', 'movimiento.view_estadomovimiento',
-        # Reportes (acceso completo)
-        'reporte.add_configuracionreporte', 'reporte.change_configuracionreporte', 'reporte.delete_configuracionreporte', 'reporte.view_configuracionreporte',
-        'reporte.add_filtroreporte', 'reporte.change_filtroreporte', 'reporte.delete_filtroreporte', 'reporte.view_filtroreporte',
-        'reporte.add_reportegenerado', 'reporte.change_reportegenerado', 'reporte.delete_reportegenerado', 'reporte.view_reportegenerado',
-        # Configuración (acceso completo)
-        'configuracion.add_configuracionsistema', 'configuracion.change_configuracionsistema', 'configuracion.delete_configuracionsistema', 'configuracion.view_configuracionsistema',
-        'configuracion.add_rangoaccion', 'configuracion.change_rangoaccion', 'configuracion.delete_rangoaccion', 'configuracion.view_rangoaccion',
-        'configuracion.add_tipoincidencia', 'configuracion.change_tipoincidencia', 'configuracion.delete_tipoincidencia', 'configuracion.view_tipoincidencia',
-        'configuracion.add_incidenciamovimiento', 'configuracion.change_incidenciamovimiento', 'configuracion.delete_incidenciamovimiento', 'configuracion.view_incidenciamovimiento',
+        'add_usuario', 'change_usuario', 'delete_usuario', 'view_usuario',
     ]
     
-    for perm_codename in permisos_gerente:
-        try:
-            app_label, codename = perm_codename.split('.')
-            perm = Permission.objects.get(content_type__app_label=app_label, codename=codename)
-            gerente_group.permissions.add(perm)
-        except Permission.DoesNotExist:
-            print(f"Permiso no encontrado: {perm_codename}")
+    # Obtener content type para Usuario
+    try:
+        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
+        
+        for perm_codename in permisos_gerente:
+            try:
+                perm = Permission.objects.get(
+                    content_type=usuario_content_type,
+                    codename=perm_codename
+                )
+                gerente_group.permissions.add(perm)
+                print(f"Permiso asignado: {perm_codename}")
+            except Permission.DoesNotExist:
+                print(f"Permiso no encontrado: {perm_codename}")
+    except ContentType.DoesNotExist:
+        print("ContentType para Usuario no encontrado")
     
     print(f"Permisos asignados a Gerentes: {gerente_group.permissions.count()}")
 
@@ -75,39 +59,25 @@ def crear_grupos_y_permisos():
         print("Grupo 'Supervisores' creado")
     
     permisos_supervisor = [
-        # Usuario (solo ver)
-        'usuario.view_usuario',
-        # Farmacia (ver y editar)
-        'farmacia.view_farmacia', 'farmacia.change_farmacia',
-        # Motorista (ver y editar)
-        'motorista.view_motorista', 'motorista.change_motorista',
-        # Moto (ver y editar)
-        'moto.view_moto', 'moto.change_moto',
-        # Asignación (gestión completa)
-        'asignacion.add_asignacionfarmacia', 'asignacion.change_asignacionfarmacia', 'asignacion.delete_asignacionfarmacia', 'asignacion.view_asignacionfarmacia',
-        'asignacion.add_asignacionmoto', 'asignacion.change_asignacionmoto', 'asignacion.delete_asignacionmoto', 'asignacion.view_asignacionmoto',
-        'asignacion.can_manage_asignaciones',
-        # Movimiento (gestión completa)
-        'movimiento.add_movimiento', 'movimiento.change_movimiento', 'movimiento.delete_movimiento', 'movimiento.view_movimiento',
-        'movimiento.add_movimientodirecto', 'movimiento.change_movimientodirecto', 'movimiento.delete_movimientodirecto', 'movimiento.view_movimientodirecto',
-        'movimiento.add_movimientoreceta', 'movimiento.change_movimientoreceta', 'movimiento.delete_movimientoreceta', 'movimiento.view_movimientoreceta',
-        'movimiento.add_movimientotraslado', 'movimiento.change_movimientotraslado', 'movimiento.delete_movimientotraslado', 'movimiento.view_movimientotraslado',
-        'movimiento.add_movimientoreenvio', 'movimiento.change_movimientoreenvio', 'movimiento.delete_movimientoreenvio', 'movimiento.view_movimientoreenvio',
-        'movimiento.add_bitacoramovimiento', 'movimiento.change_bitacoramovimiento', 'movimiento.delete_bitacoramovimiento', 'movimiento.view_bitacoramovimiento',
-        'movimiento.add_estadomovimiento', 'movimiento.change_estadomovimiento', 'movimiento.delete_estadomovimiento', 'movimiento.view_estadomovimiento',
-        # Reportes (solo ver)
-        'reporte.view_configuracionreporte', 'reporte.view_filtroreporte', 'reporte.view_reportegenerado',
-        # Configuración (gestión de incidencias)
-        'configuracion.view_incidenciamovimiento', 'configuracion.add_incidenciamovimiento', 'configuracion.change_incidenciamovimiento',
+        # Usuario (ver y editar)
+        'change_usuario', 'view_usuario',
     ]
     
-    for perm_codename in permisos_supervisor:
-        try:
-            app_label, codename = perm_codename.split('.')
-            perm = Permission.objects.get(content_type__app_label=app_label, codename=codename)
-            supervisor_group.permissions.add(perm)
-        except Permission.DoesNotExist:
-            print(f"Permiso no encontrado: {perm_codename}")
+    try:
+        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
+        
+        for perm_codename in permisos_supervisor:
+            try:
+                perm = Permission.objects.get(
+                    content_type=usuario_content_type,
+                    codename=perm_codename
+                )
+                supervisor_group.permissions.add(perm)
+                print(f"Permiso asignado: {perm_codename}")
+            except Permission.DoesNotExist:
+                print(f"Permiso no encontrado: {perm_codename}")
+    except ContentType.DoesNotExist:
+        print("ContentType para Usuario no encontrado")
     
     print(f"Permisos asignados a Supervisores: {supervisor_group.permissions.count()}")
 
@@ -117,26 +87,25 @@ def crear_grupos_y_permisos():
         print("Grupo 'Operadores' creado")
     
     permisos_operador = [
-        # Solo operaciones de movimiento
-        'movimiento.add_movimiento', 'movimiento.change_movimiento', 'movimiento.view_movimiento',
-        'movimiento.add_movimientodirecto', 'movimiento.change_movimientodirecto', 'movimiento.view_movimientodirecto',
-        'movimiento.add_movimientoreceta', 'movimiento.change_movimientoreceta', 'movimiento.view_movimientoreceta',
-        'movimiento.add_movimientotraslado', 'movimiento.change_movimientotraslado', 'movimiento.view_movimientotraslado',
-        'movimiento.add_movimientoreenvio', 'movimiento.change_movimientoreenvio', 'movimiento.view_movimientoreenvio',
-        'movimiento.view_bitacoramovimiento', 'movimiento.view_estadomovimiento',
-        # Solo ver farmacias, motoristas y motos
-        'farmacia.view_farmacia', 'motorista.view_motorista', 'moto.view_moto',
-        # Solo ver asignaciones
-        'asignacion.view_asignacionfarmacia', 'asignacion.view_asignacionmoto',
+        # Usuario (solo ver)
+        'view_usuario',
     ]
     
-    for perm_codename in permisos_operador:
-        try:
-            app_label, codename = perm_codename.split('.')
-            perm = Permission.objects.get(content_type__app_label=app_label, codename=codename)
-            operador_group.permissions.add(perm)
-        except Permission.DoesNotExist:
-            print(f"Permiso no encontrado: {perm_codename}")
+    try:
+        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
+        
+        for perm_codename in permisos_operador:
+            try:
+                perm = Permission.objects.get(
+                    content_type=usuario_content_type,
+                    codename=perm_codename
+                )
+                operador_group.permissions.add(perm)
+                print(f"Permiso asignado: {perm_codename}")
+            except Permission.DoesNotExist:
+                print(f"Permiso no encontrado: {perm_codename}")
+    except ContentType.DoesNotExist:
+        print("ContentType para Usuario no encontrado")
     
     print(f"Permisos asignados a Operadores: {operador_group.permissions.count()}")
 
@@ -146,24 +115,25 @@ def crear_grupos_y_permisos():
         print("Grupo 'Motoristas' creado")
     
     permisos_motorista = [
-        # Solo ver movimientos asignados
-        'movimiento.view_movimiento', 'movimiento.view_movimientodirecto', 'movimiento.view_movimientoreceta',
-        'movimiento.view_movimientotraslado', 'movimiento.view_movimientoreenvio',
-        # Solo cambiar estado de movimientos asignados
-        'movimiento.change_movimiento',
-        # Ver bitácora propia
-        'movimiento.view_bitacoramovimiento',
-        # Ver información básica
-        'farmacia.view_farmacia', 'motorista.view_motorista', 'moto.view_moto',
+        # Usuario (solo ver propio perfil)
+        'view_usuario',
     ]
     
-    for perm_codename in permisos_motorista:
-        try:
-            app_label, codename = perm_codename.split('.')
-            perm = Permission.objects.get(content_type__app_label=app_label, codename=codename)
-            motorista_group.permissions.add(perm)
-        except Permission.DoesNotExist:
-            print(f"Permiso no encontrado: {perm_codename}")
+    try:
+        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
+        
+        for perm_codename in permisos_motorista:
+            try:
+                perm = Permission.objects.get(
+                    content_type=usuario_content_type,
+                    codename=perm_codename
+                )
+                motorista_group.permissions.add(perm)
+                print(f"Permiso asignado: {perm_codename}")
+            except Permission.DoesNotExist:
+                print(f"Permiso no encontrado: {perm_codename}")
+    except ContentType.DoesNotExist:
+        print("ContentType para Usuario no encontrado")
     
     print(f"Permisos asignados a Motoristas: {motorista_group.permissions.count()}")
     
@@ -185,8 +155,10 @@ def crear_usuarios_demo(grupos):
             'username': 'gerente.logico',
             'password': 'LogicoGerente.2025',
             'email': 'gerente@logico.com',
-            'first_name': 'Gerente',
-            'last_name': 'LogiCo',
+            'first_name': 'Ana',
+            'last_name': 'García',
+            'rut': '12.345.678-9',
+            'telefono': '+56 9 1234 5678',
             'rol': 'gerente',
             'group': grupos['gerente']
         },
@@ -194,8 +166,10 @@ def crear_usuarios_demo(grupos):
             'username': 'supervisor.logico',
             'password': 'LogicoSupervisor.2025',
             'email': 'supervisor@logico.com',
-            'first_name': 'Supervisor',
-            'last_name': 'LogiCo',
+            'first_name': 'Carlos',
+            'last_name': 'López',
+            'rut': '23.456.789-0',
+            'telefono': '+56 9 2345 6789',
             'rol': 'supervisor',
             'group': grupos['supervisor']
         },
@@ -203,8 +177,10 @@ def crear_usuarios_demo(grupos):
             'username': 'operador.logico',
             'password': 'LogicoOperador.2025',
             'email': 'operador@logico.com',
-            'first_name': 'Operador',
-            'last_name': 'LogiCo',
+            'first_name': 'María',
+            'last_name': 'Rodríguez',
+            'rut': '34.567.890-1',
+            'telefono': '+56 9 3456 7890',
             'rol': 'operador',
             'group': grupos['operador']
         },
@@ -212,18 +188,32 @@ def crear_usuarios_demo(grupos):
             'username': 'motorista.logico',
             'password': 'LogicoMotorista.2025',
             'email': 'motorista@logico.com',
-            'first_name': 'Motorista',
-            'last_name': 'LogiCo',
+            'first_name': 'Pedro',
+            'last_name': 'Martínez',
+            'rut': '45.678.901-2',
+            'telefono': '+56 9 4567 8901',
             'rol': 'motorista',
             'group': grupos['motorista']
         }
     ]
+    
+    usuarios_creados = []
     
     for user_data in usuarios_data:
         # Verificar si el usuario ya existe
         if User.objects.filter(username=user_data['username']).exists():
             user = User.objects.get(username=user_data['username'])
             print(f"Usuario {user_data['username']} ya existe, actualizando...")
+            
+            # Actualizar datos
+            user.email = user_data['email']
+            user.first_name = user_data['first_name']
+            user.last_name = user_data['last_name']
+            user.rut = user_data['rut']
+            user.telefono = user_data['telefono']
+            user.rol = user_data['rol']
+            user.set_password(user_data['password'])
+            user.save()
         else:
             # Crear nuevo usuario
             user = User.objects.create_user(
@@ -232,20 +222,84 @@ def crear_usuarios_demo(grupos):
                 password=user_data['password'],
                 first_name=user_data['first_name'],
                 last_name=user_data['last_name'],
+                rut=user_data['rut'],
+                telefono=user_data['telefono'],
                 rol=user_data['rol']
             )
             print(f"Usuario {user_data['username']} creado")
         
-        # Asignar grupo
+        # Limpiar grupos existentes y asignar nuevo grupo
+        user.groups.clear()
         user.groups.add(user_data['group'])
         user.save()
         
+        usuarios_creados.append({
+            'username': user.username,
+            'rol': user.rol,
+            'group': user_data['group'].name
+        })
+        
         print(f"Usuario: {user.username}")
         print(f"Email: {user.email}")
+        print(f"Nombre: {user.get_full_name()}")
+        print(f"RUT: {user.rut}")
+        print(f"Teléfono: {user.telefono}")
         print(f"Rol: {user.rol}")
         print(f"Grupo: {user_data['group'].name}")
         print(f"Password: {user_data['password']}")
-        print()
+        print("-" * 40)
+    
+    return usuarios_creados
+
+def crear_superusuario():
+    """Crea un superusuario para administración total"""
+    
+    print("\nCREANDO SUPERUSUARIO")
+    
+    superuser_data = {
+        'username': 'admin.logico',
+        'password': 'AdminLogico.2025',
+        'email': 'admin@logico.com',
+        'first_name': 'Administrador',
+        'last_name': 'Sistema',
+        'rut': '99.999.999-9',
+        'telefono': '+56 9 9999 9999',
+        'rol': 'gerente'
+    }
+    
+    if User.objects.filter(username=superuser_data['username']).exists():
+        user = User.objects.get(username=superuser_data['username'])
+        print(f"Superusuario {superuser_data['username']} ya existe")
+    else:
+        user = User.objects.create_superuser(
+            username=superuser_data['username'],
+            email=superuser_data['email'],
+            password=superuser_data['password'],
+            first_name=superuser_data['first_name'],
+            last_name=superuser_data['last_name'],
+            rut=superuser_data['rut'],
+            telefono=superuser_data['telefono'],
+            rol=superuser_data['rol']
+        )
+        print(f"Superusuario {superuser_data['username']} creado")
+    
+    # Asignar a todos los grupos
+    grupos = Group.objects.all()
+    for grupo in grupos:
+        user.groups.add(grupo)
+    
+    user.save()
+    
+    print(f"Superusuario: {user.username}")
+    print(f"Email: {user.email}")
+    print(f"Nombre: {user.get_full_name()}")
+    print(f"Rol: {user.rol}")
+    print(f"Es superusuario: {user.is_superuser}")
+    print(f"Grupos: {[g.name for g in user.groups.all()]}")
+    print(f"Password: {superuser_data['password']}")
+    print("-" * 40)
+    
+    return user
 
 def verificar_creacion():
     """Verifica que todo se creó correctamente"""
@@ -254,19 +308,64 @@ def verificar_creacion():
     
     # Verificar grupos
     grupos = Group.objects.all()
-    print("Grupos creados:")
+    print("GRUPOS CREADOS:")
     for grupo in grupos:
-        print(f"- {grupo.name}: {grupo.permissions.count()} permisos")
+        permisos = grupo.permissions.all()
+        print(f"- {grupo.name}: {permisos.count()} permisos")
+        for permiso in permisos:
+            print(f"  • {permiso.codename}")
     
     # Verificar usuarios
-    usuarios = User.objects.all()
-    print("\nUsuarios creados:")
+    usuarios = User.objects.all().order_by('rol')
+    print("\nUSUARIOS CREADOS:")
     for usuario in usuarios:
         grupos_usuario = [g.name for g in usuario.groups.all()]
-        print(f"- {usuario.username} ({usuario.rol}): {grupos_usuario}")
+        print(f"- {usuario.username}")
+        print(f"  Rol: {usuario.rol}")
+        print(f"  Nombre: {usuario.get_full_name()}")
+        print(f"  Email: {usuario.email}")
+        print(f"  Grupos: {', '.join(grupos_usuario)}")
+        print(f"  Activo: {usuario.is_active}")
+        print(f"  Superusuario: {usuario.is_superuser}")
+        print()
     
-    print(f"\nTotal usuarios: {usuarios.count()}")
+    print(f"RESUMEN:")
+    print(f"Total usuarios: {usuarios.count()}")
     print(f"Total grupos: {grupos.count()}")
+    
+    # Contar por rol
+    roles_count = {}
+    for usuario in usuarios:
+        rol = usuario.rol
+        roles_count[rol] = roles_count.get(rol, 0) + 1
+    
+    print(f"Usuarios por rol: {roles_count}")
+
+def probar_permisos():
+    """Prueba los permisos asignados a los usuarios"""
+    
+    print("\nPROBANDO PERMISOS")
+    
+    usuarios = User.objects.all()
+    
+    for usuario in usuarios:
+        print(f"\nPermisos de {usuario.username} ({usuario.rol}):")
+        
+        # Verificar permisos específicos de usuario
+        permisos_usuario = [
+            'usuario.add_usuario',
+            'usuario.change_usuario', 
+            'usuario.delete_usuario',
+            'usuario.view_usuario'
+        ]
+        
+        for permiso in permisos_usuario:
+            tiene_permiso = usuario.has_perm(permiso)
+            print(f"  {permiso}: {'✅' if tiene_permiso else '❌'}")
+        
+        # Verificar permisos a través de grupos
+        print(f"  Grupos: {[g.name for g in usuario.groups.all()]}")
+        print(f"  Permisos totales: {usuario.get_all_permissions().count()}")
 
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
@@ -274,20 +373,58 @@ if __name__ == "__main__":
     
     try:
         # Crear grupos y permisos
+        print("FASE 1: Creando grupos y permisos...")
         grupos = crear_grupos_y_permisos()
         
+        # Crear superusuario
+        print("\nFASE 2: Creando superusuario...")
+        crear_superusuario()
+        
         # Crear usuarios demo
-        crear_usuarios_demo(grupos)
+        print("\nFASE 3: Creando usuarios demo...")
+        usuarios_creados = crear_usuarios_demo(grupos)
         
         # Verificar creación
+        print("\nFASE 4: Verificando creación...")
         verificar_creacion()
         
-        print("\nPROCESO COMPLETADO EXITOSAMENTE")
+        # Probar permisos
+        print("\nFASE 5: Probando permisos...")
+        probar_permisos()
+        
+        print("\n" + "=" * 50)
+        print("PROCESO COMPLETADO EXITOSAMENTE")
+        print("=" * 50)
+        
         print("\nCREDENCIALES DE ACCESO:")
-        print("Gerente:     gerente.logico / LogicoGerente.2025")
-        print("Supervisor:  supervisor.logico / LogicoSupervisor.2025")
-        print("Operador:    operador.logico / LogicoOperador.2025")
-        print("Motorista:   motorista.logico / LogicoMotorista.2025")
+        print("Superusuario (acceso total):")
+        print("  Usuario: admin.logico")
+        print("  Password: AdminLogico.2025")
+        
+        print("\nUsuarios por rol:")
+        print("  Gerente:")
+        print("    Usuario: gerente.logico")
+        print("    Password: LogicoGerente.2025")
+        
+        print("  Supervisor:")
+        print("    Usuario: supervisor.logico")  
+        print("    Password: LogicoSupervisor.2025")
+        
+        print("  Operador:")
+        print("    Usuario: operador.logico")
+        print("    Password: LogicoOperador.2025")
+        
+        print("  Motorista:")
+        print("    Usuario: motorista.logico")
+        print("    Password: LogicoMotorista.2025")
+        
+        print("\nPERMISOS POR ROL:")
+        print("  Gerente: Crear, editar, eliminar y ver usuarios")
+        print("  Supervisor: Editar y ver usuarios") 
+        print("  Operador: Solo ver usuarios (lista)")
+        print("  Motorista: Solo ver propio perfil")
+        
+        print("\nNOTA: Los permisos se aplican automáticamente al sistema de control de acceso.")
         
     except Exception as e:
         print(f"ERROR: {e}")

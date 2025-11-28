@@ -1,21 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, update_session_auth_hash
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
-from .decorators import (
-    require_roles, require_permission, 
-    gerente_required, supervisor_required
-)
+from django.views.generic import ListView
+
+from .decorators import require_roles, require_permission, can_edit_user
 from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm, PasswordChangeCustomForm
 from .models import Usuario
 
 def login_view(request):
     """
     Vista personalizada para inicio de sesión.
-    Redirige usuarios autenticados al dashboard.
-    Acceso: Público (usuarios no autenticados)
     """
     if request.user.is_authenticated:
         return redirect('usuario:dashboard')
@@ -28,7 +26,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, f'¡Bienvenido/a {user.get_full_name()}!')
+                messages.success(request, f'Bienvenido/a {user.get_full_name()}')
                 return redirect('usuario:dashboard')
             else:
                 messages.error(request, 'Nombre de usuario o contraseña incorrectos')
@@ -43,12 +41,10 @@ def login_view(request):
 def dashboard(request):
     """
     Dashboard principal con redirección por rol.
-    Renderiza templates específicos según el rol del usuario.
-    Acceso: Todos los usuarios autenticados
     """
     user = request.user
     
-    # Importar modelos necesarios
+    # Importar modelos necesarios para evitar importaciones circulares
     from apps.farmacia.models import Farmacia
     from apps.motorista.models import Motorista
     from apps.moto.models import Moto
@@ -63,139 +59,48 @@ def dashboard(request):
         # Lógica para dashboard gerente
         hoy = timezone.now().date()
         
-        # Métricas de Farmacias
+        # Métricas básicas
         total_farmacias = Farmacia.objects.count()
         farmacias_activas = Farmacia.objects.filter(activo=True).count()
-        farmacias_inactivas = Farmacia.objects.filter(activo=False).count()
-        
-        # Métricas de Motoristas
         total_motoristas = Motorista.objects.count()
         motoristas_activos = Motorista.objects.filter(activo=True).count()
-        motoristas_inactivos = Motorista.objects.filter(activo=False).count()
-        
-        # Métricas de Motos
         total_motos = Moto.objects.count()
         motos_activas = Moto.objects.filter(activo=True).count()
-        
-        # Métricas de Movimientos
-        movimientos_hoy = Movimiento.objects.filter(fechaCreacion__date=hoy).count()
-        movimientos_completados = Movimiento.objects.filter(
-            fechaCreacion__date=hoy, estado='entregado'
-        ).count()
-        
-        # Eficiencia general
-        total_movimientos_periodo = Movimiento.objects.filter(
-            fechaCreacion__date__gte=hoy - timedelta(days=7)
-        ).count()
-        movimientos_entregados_periodo = Movimiento.objects.filter(
-            fechaCreacion__date__gte=hoy - timedelta(days=7), estado='entregado'
-        ).count()
-        
-        eficiencia_general = 0
-        if total_movimientos_periodo > 0:
-            eficiencia_general = round((movimientos_entregados_periodo / total_movimientos_periodo) * 100, 1)
         
         # Usuarios activos
         usuarios_activos = Usuario.objects.filter(is_active=True).count()
         
-        # Asignaciones activas
-        asignaciones_activas = AsignacionMoto.objects.filter(
-            estado='ACTIVA', activo=True
-        ).count() + AsignacionFarmacia.objects.filter(
-            estado='ACTIVA', activo=True
-        ).count()
-        
-        # Incidencias pendientes
-        incidencias_pendientes = IncidenciaMovimiento.objects.filter(
-            estado__in=['REGISTRADA', 'EN_REVISION']
-        ).count()
-        
-        # Movimientos recientes
-        movimientos_recientes = Movimiento.objects.select_related(
-            'rutMotorista', 'idFarmaciaOrigen'
-        ).order_by('-fechaCreacion')[:10]
-
         context = {
             'total_farmacias': total_farmacias,
             'farmacias_activas': farmacias_activas,
-            'farmacias_inactivas': farmacias_inactivas,
             'total_motoristas': total_motoristas,
             'motoristas_activos': motoristas_activos,
-            'motoristas_inactivos': motoristas_inactivos,
             'total_motos': total_motos,
             'motos_activas': motos_activas,
-            'movimientos_hoy': movimientos_hoy,
-            'movimientos_completados': movimientos_completados,
-            'eficiencia_general': eficiencia_general,
             'usuarios_activos': usuarios_activos,
-            'asignaciones_activas': asignaciones_activas,
-            'incidencias_pendientes': incidencias_pendientes,
-            'movimientos_recientes': movimientos_recientes,
         }
         return render(request, 'usuario/dashboard_gerente.html', context)
         
     elif user.es_supervisor:
         # Lógica para dashboard supervisor
         movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
-        
-        asignaciones_activas = AsignacionMoto.objects.filter(
-            estado='ACTIVA', activo=True
-        ).count() + AsignacionFarmacia.objects.filter(
-            estado='ACTIVA', activo=True
-        ).count()
-        
-        motoristas_disponibles = Motorista.objects.filter(
-            activo=True
-        ).exclude(
-            Q(asignacionmoto__estado='ACTIVA') | Q(asignacionfarmacia__estado='ACTIVA')
-        ).count()
-        
         total_motoristas = Motorista.objects.filter(activo=True).count()
         
-        incidencias_activas = IncidenciaMovimiento.objects.filter(
-            estado__in=['REGISTRADA', 'EN_REVISION']
-        ).count()
-        
-        movimientos_atencion = Movimiento.objects.filter(
-            estado__in=['pendiente', 'fallido', 'pendiente_autorizacion']
-        ).select_related('rutMotorista', 'idFarmaciaOrigen')[:10]
-        
-        movimientos_atencion_count = movimientos_atencion.count()
-
         context = {
             'movimientos_pendientes': movimientos_pendientes,
-            'asignaciones_activas': asignaciones_activas,
-            'motoristas_disponibles': motoristas_disponibles,
             'total_motoristas': total_motoristas,
-            'incidencias_activas': incidencias_activas,
-            'movimientos_atencion': movimientos_atencion,
-            'movimientos_atencion_count': movimientos_atencion_count,
         }
         return render(request, 'usuario/dashboard_supervisor.html', context)
         
     elif user.es_operador:
         # Lógica para dashboard operador
         hoy = timezone.now().date()
-        
         movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
         movimientos_hoy = Movimiento.objects.filter(fechaCreacion__date=hoy).count()
-        incidencias_activas = IncidenciaMovimiento.objects.filter(
-            estado__in=['REGISTRADA', 'EN_REVISION']
-        ).count()
-        farmacias_activas = Farmacia.objects.filter(activo=True).count()
-        motoristas_disponibles = Motorista.objects.filter(activo=True).count()
         
-        movimientos_recientes = Movimiento.objects.filter(
-            creado_por=user
-        ).select_related('rutMotorista', 'idFarmaciaOrigen').order_by('-fechaCreacion')[:5]
-
         context = {
             'movimientos_pendientes': movimientos_pendientes,
             'movimientos_hoy': movimientos_hoy,
-            'incidencias_activas': incidencias_activas,
-            'farmacias_activas': farmacias_activas,
-            'motoristas_disponibles': motoristas_disponibles,
-            'movimientos_recientes': movimientos_recientes,
         }
         return render(request, 'usuario/dashboard_operador.html', context)
         
@@ -203,7 +108,6 @@ def dashboard(request):
         # Lógica para dashboard motorista
         from apps.motorista.models import Motorista
         
-        # Obtener el motorista asociado al usuario
         try:
             motorista = Motorista.objects.get(rut=user.rut)
         except Motorista.DoesNotExist:
@@ -214,7 +118,6 @@ def dashboard(request):
             return render(request, 'usuario/dashboard_motorista.html', context)
         
         hoy = timezone.now().date()
-        
         movimientos_asignados = Movimiento.objects.filter(
             rutMotorista=motorista, fechaCreacion__date=hoy
         ).count()
@@ -223,112 +126,75 @@ def dashboard(request):
             rutMotorista=motorista, estado__in=['pendiente', 'en_camino']
         ).count()
         
-        movimientos_completados = Movimiento.objects.filter(
-            rutMotorista=motorista, estado='entregado', fechaCreacion__date=hoy
-        ).count()
-        
-        total_movimientos = Movimiento.objects.filter(rutMotorista=motorista).count()
-        movimientos_entregados = Movimiento.objects.filter(
-            rutMotorista=motorista, estado='entregado'
-        ).count()
-        
-        tasa_exito = 0
-        if total_movimientos > 0:
-            tasa_exito = round((movimientos_entregados / total_movimientos) * 100, 1)
-        
-        # Información de la moto asignada
-        moto_asignada = None
-        try:
-            asignacion_moto = AsignacionMoto.objects.get(
-                motorista=motorista, estado='ACTIVA', activo=True
-            )
-            moto_asignada = asignacion_moto.moto
-        except AsignacionMoto.DoesNotExist:
-            moto_asignada = None
-        
-        # Farmacias asignadas
-        farmacias_asignadas = AsignacionFarmacia.objects.filter(
-            motorista=motorista, estado='ACTIVA', activo=True
-        ).select_related('farmacia')
-        
-        # Movimientos recientes
-        movimientos_recientes = Movimiento.objects.filter(
-            rutMotorista=motorista
-        ).select_related('idFarmaciaOrigen').order_by('-fechaCreacion')[:5]
-
         context = {
             'motorista': motorista,
             'movimientos_asignados': movimientos_asignados,
             'movimientos_pendientes': movimientos_pendientes,
-            'movimientos_completados': movimientos_completados,
-            'total_movimientos': total_movimientos,
-            'movimientos_entregados': movimientos_entregados,
-            'tasa_exito': tasa_exito,
-            'moto_asignada': moto_asignada,
-            'farmacias_asignadas': farmacias_asignadas,
-            'movimientos_recientes': movimientos_recientes,
         }
         return render(request, 'usuario/dashboard_motorista.html', context)
         
     else:
         return render(request, 'usuario/base_dashboard.html')
 
-@login_required
-@permission_required('usuario.view_usuario', raise_exception=True)
-def lista_usuarios(request):
+class UsuarioListView(PermissionRequiredMixin, ListView):
     """
-    Lista todos los usuarios con opciones de búsqueda y filtro.
-    Accesible solo para usuarios con permiso 'usuario.view_usuario'
+    Vista basada en clase para listar usuarios con control de permisos.
     """
-    # Verificación adicional para motoristas
-    if request.user.es_motorista:
-        raise PermissionDenied("Los motoristas no pueden acceder a la gestión de usuarios")
+    model = Usuario
+    template_name = 'usuario/lista_usuarios.html'
+    context_object_name = 'usuarios'
+    permission_required = 'usuario.view_usuario'
+    paginate_by = 20
     
-    query = request.GET.get('q', '')
-    rol_filter = request.GET.get('rol', '')
-    estado_filter = request.GET.get('estado', '')
+    def get_queryset(self):
+        queryset = Usuario.objects.all()
+        query = self.request.GET.get('q', '')
+        rol_filter = self.request.GET.get('rol', '')
+        estado_filter = self.request.GET.get('estado', '')
 
-    usuarios = Usuario.objects.all()
+        # Aplicar filtros de búsqueda
+        if query:
+            queryset = queryset.filter(
+                Q(username__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(email__icontains=query) |
+                Q(rut__icontains=query)
+            )
 
-    # Aplicar filtros de búsqueda
-    if query:
-        usuarios = usuarios.filter(
-            Q(username__icontains=query) |
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(email__icontains=query) |
-            Q(rut__icontains=query)
-        )
+        if rol_filter:
+            queryset = queryset.filter(rol=rol_filter)
 
-    if rol_filter:
-        usuarios = usuarios.filter(rol=rol_filter)
+        if estado_filter:
+            if estado_filter == 'activo':
+                queryset = queryset.filter(is_active=True)
+            elif estado_filter == 'inactivo':
+                queryset = queryset.filter(is_active=False)
 
-    if estado_filter:
-        if estado_filter == 'activo':
-            usuarios = usuarios.filter(is_active=True)
-        elif estado_filter == 'inactivo':
-            usuarios = usuarios.filter(is_active=False)
-
-    usuarios = usuarios.order_by('-date_joined')
-
-    context = {
-        'usuarios': usuarios,
-        'query': query,
-        'rol_filter': rol_filter,
-        'estado_filter': estado_filter,
-        'roles': Usuario.ROL_CHOICES,
-    }
-    return render(request, 'usuario/lista_usuarios.html', context)
+        return queryset.order_by('-date_joined')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        context['rol_filter'] = self.request.GET.get('rol', '')
+        context['estado_filter'] = self.request.GET.get('estado', '')
+        context['roles'] = Usuario.ROL_CHOICES
+        return context
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Motoristas no pueden ver la lista de usuarios
+        if request.user.es_motorista:
+            raise PermissionDenied("Los motoristas no pueden ver la lista de usuarios")
+        return super().dispatch(request, *args, **kwargs)
 
 @login_required
-@permission_required('usuario.add_usuario', raise_exception=True)
+@require_permission('usuario.add_usuario')
 def crear_usuario(request):
     """
     Crear nuevo usuario en el sistema.
-    Accesible solo para usuarios con permiso 'usuario.add_usuario'
     """
-    # Verificación adicional para roles no autorizados
-    if request.user.es_motorista or request.user.es_operador:
+    # Operadores y motoristas no pueden crear usuarios
+    if request.user.es_operador or request.user.es_motorista:
         raise PermissionDenied("No tienes permisos para crear usuarios")
     
     if request.method == 'POST':
@@ -345,28 +211,38 @@ def crear_usuario(request):
     return render(request, 'usuario/crear_usuario.html', {'form': form})
 
 @login_required
-@permission_required('usuario.change_usuario', raise_exception=True)
+@can_edit_user()
 def editar_usuario(request, usuario_id):
     """
-    Editar usuario existente.
-    Accesible solo para usuarios con permiso 'usuario.change_usuario'
+    Editar usuario existente con validaciones de permisos.
     """
-    # Verificación adicional para roles no autorizados
-    if request.user.es_motorista:
-        raise PermissionDenied("Los motoristas no pueden editar usuarios")
-    
     usuario = get_object_or_404(Usuario, id=usuario_id)
-
-    # Los operadores solo pueden editar su propio perfil
+    
+    # Validaciones adicionales de permisos
     if request.user.es_operador and usuario != request.user:
         raise PermissionDenied("Los operadores solo pueden editar su propio perfil")
+    
+    if request.user.es_motorista and usuario != request.user:
+        raise PermissionDenied("Los motoristas solo pueden editar su propio perfil")
 
     if request.method == 'POST':
         form = UsuarioUpdateForm(request.POST, instance=usuario)
         if form.is_valid():
+            # Validar que solo gerentes pueden cambiar roles a gerente
+            if 'rol' in form.changed_data:
+                nuevo_rol = form.cleaned_data.get('rol')
+                if nuevo_rol == 'gerente' and not request.user.es_gerente and not request.user.is_superuser:
+                    messages.error(request, 'Solo los gerentes pueden asignar el rol de gerente')
+                    return render(request, 'usuario/editar_usuario.html', {'form': form, 'usuario': usuario})
+            
             form.save()
             messages.success(request, f'Usuario {usuario.get_full_name()} actualizado exitosamente')
-            return redirect('usuario:lista_usuarios')
+            
+            # Redirigir según el tipo de usuario
+            if request.user == usuario:
+                return redirect('usuario:perfil')
+            else:
+                return redirect('usuario:lista_usuarios')
         else:
             messages.error(request, 'Por favor corrige los errores del formulario')
     else:
@@ -379,22 +255,21 @@ def editar_usuario(request, usuario_id):
     return render(request, 'usuario/editar_usuario.html', context)
 
 @login_required
-@permission_required('usuario.change_usuario', raise_exception=True)
+@require_permission('usuario.change_usuario')
 def desactivar_usuario(request, usuario_id):
     """
     Desactivar usuario (soft delete).
-    Impide que un gerente se desactive a sí mismo.
-    Accesible solo para usuarios con permiso 'usuario.change_usuario'
     """
-    # Solo gerentes y supervisores pueden desactivar usuarios
-    if not (request.user.es_gerente or request.user.es_supervisor):
-        raise PermissionDenied("No tienes permisos para desactivar usuarios")
-    
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
+    # Validaciones de seguridad
     if usuario == request.user:
         messages.error(request, 'No puedes desactivar tu propio usuario')
         return redirect('usuario:lista_usuarios')
+    
+    # Operadores y motoristas no pueden desactivar usuarios
+    if request.user.es_operador or request.user.es_motorista:
+        raise PermissionDenied("No tienes permisos para desactivar usuarios")
     
     if request.method == 'POST':
         usuario.is_active = False
@@ -405,17 +280,16 @@ def desactivar_usuario(request, usuario_id):
     return render(request, 'usuario/confirmar_desactivar.html', {'usuario': usuario})
 
 @login_required
-@permission_required('usuario.change_usuario', raise_exception=True)
+@require_permission('usuario.change_usuario')
 def activar_usuario(request, usuario_id):
     """
     Activar usuario previamente desactivado.
-    Accesible solo para usuarios con permiso 'usuario.change_usuario'
     """
-    # Solo gerentes y supervisores pueden activar usuarios
-    if not (request.user.es_gerente or request.user.es_supervisor):
-        raise PermissionDenied("No tienes permisos para activar usuarios")
-    
     usuario = get_object_or_404(Usuario, id=usuario_id)
+    
+    # Operadores y motoristas no pueden activar usuarios
+    if request.user.es_operador or request.user.es_motorista:
+        raise PermissionDenied("No tienes permisos para activar usuarios")
     
     if request.method == 'POST':
         usuario.is_active = True
@@ -436,6 +310,11 @@ def perfil_usuario(request):
     if request.method == 'POST':
         form = UsuarioUpdateForm(request.POST, instance=usuario)
         if form.is_valid():
+            # Usuarios no gerentes no pueden cambiar su propio rol
+            if 'rol' in form.changed_data and not request.user.es_gerente and not request.user.is_superuser:
+                messages.error(request, 'No puedes cambiar tu propio rol')
+                return render(request, 'usuario/perfil.html', {'form': form})
+            
             form.save()
             messages.success(request, 'Perfil actualizado exitosamente')
             return redirect('usuario:perfil')
@@ -467,21 +346,18 @@ def cambiar_password(request):
     return render(request, 'usuario/cambiar_password.html', {'form': form})
 
 @login_required
-@permission_required('usuario.view_usuario', raise_exception=True)
+@require_permission('usuario.view_usuario')
 def detalle_usuario(request, usuario_id):
     """
     Ver detalles de un usuario específico.
-    Accesible solo para usuarios con permiso 'usuario.view_usuario'
     """
-    # Verificación adicional para motoristas
-    if request.user.es_motorista:
-        raise PermissionDenied("Los motoristas no pueden ver detalles de usuarios")
-    
     usuario = get_object_or_404(Usuario, id=usuario_id)
+    
+    # Motoristas solo pueden ver su propio perfil
+    if request.user.es_motorista and usuario != request.user:
+        raise PermissionDenied("Los motoristas solo pueden ver su propio perfil")
+    
     return render(request, 'usuario/detalle_usuario.html', {'usuario': usuario})
 
-def error_403(request, exception=None):
-    """
-    Vista personalizada para errores 403 (Permiso denegado)
-    """
-    return render(request, 'usuario/403.html', status=403)
+# Reemplazar la vista lista_usuarios por la vista basada en clase
+lista_usuarios = UsuarioListView.as_view()
