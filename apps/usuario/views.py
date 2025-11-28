@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q
-from .decorators import require_roles
+from django.core.exceptions import PermissionDenied
+from .decorators import (
+    require_roles, require_permission, 
+    gerente_required, supervisor_required
+)
 from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm, PasswordChangeCustomForm
 from .models import Usuario
 
@@ -11,6 +15,7 @@ def login_view(request):
     """
     Vista personalizada para inicio de sesión.
     Redirige usuarios autenticados al dashboard.
+    Acceso: Público (usuarios no autenticados)
     """
     if request.user.is_authenticated:
         return redirect('usuario:dashboard')
@@ -34,12 +39,12 @@ def login_view(request):
 
     return render(request, 'usuario/login.html', {'form': form})
 
-
 @login_required
 def dashboard(request):
     """
     Dashboard principal con redirección por rol.
     Renderiza templates específicos según el rol del usuario.
+    Acceso: Todos los usuarios autenticados
     """
     user = request.user
     
@@ -91,7 +96,6 @@ def dashboard(request):
             eficiencia_general = round((movimientos_entregados_periodo / total_movimientos_periodo) * 100, 1)
         
         # Usuarios activos
-        from .models import Usuario
         usuarios_activos = Usuario.objects.filter(is_active=True).count()
         
         # Asignaciones activas
@@ -270,12 +274,16 @@ def dashboard(request):
         return render(request, 'usuario/base_dashboard.html')
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.view_usuario', raise_exception=True)
 def lista_usuarios(request):
     """
     Lista todos los usuarios con opciones de búsqueda y filtro.
-    Accesible solo para gerentes y superusuarios.
+    Accesible solo para usuarios con permiso 'usuario.view_usuario'
     """
+    # Verificación adicional para motoristas
+    if request.user.es_motorista:
+        raise PermissionDenied("Los motoristas no pueden acceder a la gestión de usuarios")
+    
     query = request.GET.get('q', '')
     rol_filter = request.GET.get('rol', '')
     estado_filter = request.GET.get('estado', '')
@@ -313,12 +321,16 @@ def lista_usuarios(request):
     return render(request, 'usuario/lista_usuarios.html', context)
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.add_usuario', raise_exception=True)
 def crear_usuario(request):
     """
     Crear nuevo usuario en el sistema.
-    Accesible solo para gerentes y superusuarios.
+    Accesible solo para usuarios con permiso 'usuario.add_usuario'
     """
+    # Verificación adicional para roles no autorizados
+    if request.user.es_motorista or request.user.es_operador:
+        raise PermissionDenied("No tienes permisos para crear usuarios")
+    
     if request.method == 'POST':
         form = UsuarioCreateForm(request.POST)
         if form.is_valid():
@@ -333,13 +345,21 @@ def crear_usuario(request):
     return render(request, 'usuario/crear_usuario.html', {'form': form})
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.change_usuario', raise_exception=True)
 def editar_usuario(request, usuario_id):
     """
     Editar usuario existente.
-    Accesible solo para gerentes y superusuarios.
+    Accesible solo para usuarios con permiso 'usuario.change_usuario'
     """
+    # Verificación adicional para roles no autorizados
+    if request.user.es_motorista:
+        raise PermissionDenied("Los motoristas no pueden editar usuarios")
+    
     usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    # Los operadores solo pueden editar su propio perfil
+    if request.user.es_operador and usuario != request.user:
+        raise PermissionDenied("Los operadores solo pueden editar su propio perfil")
 
     if request.method == 'POST':
         form = UsuarioUpdateForm(request.POST, instance=usuario)
@@ -359,12 +379,17 @@ def editar_usuario(request, usuario_id):
     return render(request, 'usuario/editar_usuario.html', context)
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.change_usuario', raise_exception=True)
 def desactivar_usuario(request, usuario_id):
     """
     Desactivar usuario (soft delete).
     Impide que un gerente se desactive a sí mismo.
+    Accesible solo para usuarios con permiso 'usuario.change_usuario'
     """
+    # Solo gerentes y supervisores pueden desactivar usuarios
+    if not (request.user.es_gerente or request.user.es_supervisor):
+        raise PermissionDenied("No tienes permisos para desactivar usuarios")
+    
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if usuario == request.user:
@@ -380,11 +405,16 @@ def desactivar_usuario(request, usuario_id):
     return render(request, 'usuario/confirmar_desactivar.html', {'usuario': usuario})
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.change_usuario', raise_exception=True)
 def activar_usuario(request, usuario_id):
     """
     Activar usuario previamente desactivado.
+    Accesible solo para usuarios con permiso 'usuario.change_usuario'
     """
+    # Solo gerentes y supervisores pueden activar usuarios
+    if not (request.user.es_gerente or request.user.es_supervisor):
+        raise PermissionDenied("No tienes permisos para activar usuarios")
+    
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if request.method == 'POST':
@@ -437,11 +467,21 @@ def cambiar_password(request):
     return render(request, 'usuario/cambiar_password.html', {'form': form})
 
 @login_required
-@require_roles(['gerente'])
+@permission_required('usuario.view_usuario', raise_exception=True)
 def detalle_usuario(request, usuario_id):
     """
     Ver detalles de un usuario específico.
-    Accesible solo para gerentes y superusuarios.
+    Accesible solo para usuarios con permiso 'usuario.view_usuario'
     """
+    # Verificación adicional para motoristas
+    if request.user.es_motorista:
+        raise PermissionDenied("Los motoristas no pueden ver detalles de usuarios")
+    
     usuario = get_object_or_404(Usuario, id=usuario_id)
     return render(request, 'usuario/detalle_usuario.html', {'usuario': usuario})
+
+def error_403(request, exception=None):
+    """
+    Vista personalizada para errores 403 (Permiso denegado)
+    """
+    return render(request, 'usuario/403.html', status=403)

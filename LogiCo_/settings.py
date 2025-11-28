@@ -159,3 +159,14 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Email configuration (para recuperación de contraseñas)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@logico.com'
+
+# Configuración de manejo de errores
+handler403 = 'apps.usuario.views.error_403'
+handler404 = 'apps.core.views.error_404'
+handler500 = 'apps.core.views.error_500'
+
+# Configuración de permisos
+PERMISSION_REQUIRED_MIXIN = {
+    'raise_exception': True,
+    'login_url': '/usuario/login/'
+}

@@ -14,11 +14,14 @@ urlpatterns = [
     path('perfil/', views.perfil_usuario, name='perfil'),
     path('cambiar-password/', views.cambiar_password, name='cambiar_password'),
 
-    # Gestión de usuarios (solo gerente)
+    # Gestión de usuarios (con permisos)
     path('usuarios/', views.lista_usuarios, name='lista_usuarios'),
     path('usuarios/crear/', views.crear_usuario, name='crear_usuario'),
     path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'),
     path('usuarios/desactivar/<int:usuario_id>/', views.desactivar_usuario, name='desactivar_usuario'),
     path('usuarios/activar/<int:usuario_id>/', views.activar_usuario, name='activar_usuario'),
     path('usuarios/detalle/<int:usuario_id>/', views.detalle_usuario, name='detalle_usuario'),
+    
+    # Error personalizado
+    path('403/', views.error_403, name='error_403'),
 ]

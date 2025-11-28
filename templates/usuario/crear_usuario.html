@@ -12,6 +12,14 @@
                     </h4>
                 </div>
                 <div class="card-body">
+                    <!-- Verificación de permisos en template -->
+                    {% if not perms.usuario.add_usuario %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        No tienes permisos para crear usuarios. Contacta al administrador del sistema.
+                    </div>
+                    {% else %}
+                    
                     <form method="post" id="usuarioForm">
                         {% csrf_token %}
                         
@@ -199,12 +207,14 @@
                                 <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Cancelar
                                 </a>
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success" {% if not perms.usuario.add_usuario %}disabled{% endif %}>
                                     <i class="fas fa-save"></i> Crear Usuario
                                 </button>
                             </div>
                         </div>
                     </form>
+                    
+                    {% endif %} <!-- Fin verificación permisos -->
                 </div>
             </div>
         </div>
