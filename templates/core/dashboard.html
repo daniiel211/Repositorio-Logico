@@ -7,12 +7,16 @@
     <!-- Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        
+        <!-- Botón condicional según permisos -->
+        {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
         <a href="{% url 'asignacion:dashboard' %}" class="btn btn-primary btn-icon-split">
             <span class="icon text-white-50">
                 <i class="fas fa-tasks"></i>
             </span>
             <span class="text">Módulo Asignaciones</span>
         </a>
+        {% endif %}
     </div>
 
     {% if error %}
@@ -109,9 +113,13 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
                                 Motoristas con Moto</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_moto }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_moto|default:0 }}</div>
                             <div class="text-xs text-muted">
-                                {{ motoristas_con_moto|floatformat:0 }} de {{ total_motoristas }} ({{ motoristas_con_moto|floatformat:0 }}%)
+                                {% if total_motoristas > 0 %}
+                                {{ motoristas_con_moto|default:0 }} de {{ total_motoristas }} ({{ motoristas_con_moto|default:0|floatformat:0 }}%)
+                                {% else %}
+                                0 de 0 (0%)
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -130,9 +138,13 @@
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
                                 Motoristas en Farmacia</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_farmacia }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_farmacia|default:0 }}</div>
                             <div class="text-xs text-muted">
-                                {{ motoristas_con_farmacia|floatformat:0 }} de {{ total_motoristas }} ({{ motoristas_con_farmacia|floatformat:0 }}%)
+                                {% if total_motoristas > 0 %}
+                                {{ motoristas_con_farmacia|default:0 }} de {{ total_motoristas }} ({{ motoristas_con_farmacia|default:0|floatformat:0 }}%)
+                                {% else %}
+                                0 de 0 (0%)
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -152,10 +164,10 @@
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                                 Tasa de Cobertura</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if total_farmacias > 0 %}
-                                    {{ motoristas_con_farmacia|floatformat:1 }}:1
+                                {% if total_farmacias > 0 and motoristas_con_farmacia > 0 %}
+                                {{ motoristas_con_farmacia|default:0 }}:{{ total_farmacias }}
                                 {% else %}
-                                    0:1
+                                0:1
                                 {% endif %}
                             </div>
                             <div class="text-xs text-muted">
@@ -171,18 +183,25 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Quick Actions - Solo para usuarios con permisos -->
+    {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas - Módulo Asignaciones</h6>
+                    
+                    <!-- Botón de estadísticas solo para usuarios autorizados -->
+                    {% if perms.core.view_estadisticas %}
                     <a href="{% url 'core:estadisticas_avanzadas' %}" class="btn btn-info btn-sm">
                         <i class="fas fa-chart-bar"></i> Ver Estadísticas Avanzadas
                     </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        <!-- Asignaciones de Motos - Solo para usuarios con permisos -->
+                        {% if perms.asignacion.add_asignacionmoto %}
                         <div class="col-md-6 mb-3">
                             <h6 class="font-weight-bold text-primary">Asignaciones de Motos</h6>
                             <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-outline-primary btn-sm mb-2">
@@ -196,6 +215,10 @@
                                 {{ asignaciones_moto_activas }} asignaciones activas
                             </p>
                         </div>
+                        {% endif %}
+                        
+                        <!-- Asignaciones de Farmacias - Solo para usuarios con permisos -->
+                        {% if perms.asignacion.add_asignacionfarmacia %}
                         <div class="col-md-6 mb-3">
                             <h6 class="font-weight-bold text-success">Asignaciones de Farmacias</h6>
                             <a href="{% url 'asignacion:crear_farmacia' %}" class="btn btn-outline-success btn-sm mb-2">
@@ -209,11 +232,51 @@
                                 {{ asignaciones_farmacia_activas }} asignaciones activas
                             </p>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Configuración del Sistema - Solo para Gerentes -->
+    {% if perms.core.change_configuracionsistema %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-cogs"></i> Configuración del Sistema
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Acceda a la configuración avanzada del sistema para modificar parámetros globales.
+                    </p>
+                    <a href="{% url 'core:configuracion_sistema' %}" class="btn btn-danger">
+                        <i class="fas fa-sliders-h"></i> Ir a Configuración
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Mensaje para usuarios con permisos limitados -->
+    {% if not perms.asignacion.add_asignacionmoto and not perms.asignacion.add_asignacionfarmacia and not perms.core.change_configuracionsistema %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Información</h6>
+                <p class="mb-0">
+                    Su rol actual tiene permisos de visualización. Contacte al administrador del sistema 
+                    si necesita acceso a funcionalidades adicionales.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Recent Activity -->
     <div class="row">
@@ -247,7 +310,7 @@
                                         <span class="text-muted smaller">{{ asignacion.moto.marca }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge badge-{{ asignacion.estado|lower }}">
+                                        <span class="badge bg-{{ asignacion.estado|lower }}">
                                             {{ asignacion.estado }}
                                         </span>
                                     </td>
@@ -296,7 +359,7 @@
                                         <span class="text-muted smaller">{{ asignacion.farmacia.comuna }}</span>
                                     </td>
                                     <td>
-                                        <span class="badge badge-{{ asignacion.estado|lower }}">
+                                        <span class="badge bg-{{ asignacion.estado|lower }}">
                                             {{ asignacion.estado }}
                                         </span>
                                     </td>
@@ -333,7 +396,7 @@
                                     <h6 class="card-title">{{ farmacia.nombre }}</h6>
                                     <p class="card-text">
                                         <small class="text-muted">{{ farmacia.direccion }}</small><br>
-                                        <span class="badge badge-primary">{{ farmacia.num_motoristas }} motorista(s)</span>
+                                        <span class="badge bg-primary">{{ farmacia.num_motoristas }} motorista(s)</span>
                                     </p>
                                 </div>
                             </div>
@@ -351,10 +414,16 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Actualizar datos cada 60 segundos
-        setInterval(function() {
-            location.reload();
-        }, 60000);
+        // Solo actualizar automáticamente si el usuario tiene permisos de supervisión
+        // Usamos una variable JavaScript para determinar si actualizar
+        var tienePermisosSupervision = {% if perms.core.view_estadisticas or user.es_supervisor or user.es_gerente %}true{% else %}false{% endif %};
+        
+        if (tienePermisosSupervision) {
+            // Actualizar datos cada 60 segundos
+            setInterval(function() {
+                location.reload();
+            }, 60000);
+        }
     });
 </script>
 {% endblock %}

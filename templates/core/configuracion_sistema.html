@@ -1,0 +1,82 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Configuración del Sistema - LogiCo{% endblock %}
+
+{% block page_title %}Configuración del Sistema{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="alert alert-warning">
+        <h4 class="alert-heading">
+            <i class="fas fa-exclamation-triangle"></i> Acceso Restringido
+        </h4>
+        <p class="mb-0">
+            Esta sección está disponible exclusivamente para usuarios con rol de Gerente. 
+            Aquí se gestionan los parámetros críticos del sistema.
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs"></i> Parámetros del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        La configuración del sistema permite modificar parámetros globales que afectan 
+                        el comportamiento de toda la plataforma LogiCo.
+                    </p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Configuraciones Operativas</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> Rangos de acción</li>
+                                        <li><i class="fas fa-check text-success"></i> Límites de distancia</li>
+                                        <li><i class="fas fa-check text-success"></i> Horarios de operación</li>
+                                        <li><i class="fas fa-check text-success"></i> Tipos de incidencias</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">Configuraciones de Seguridad</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success"></i> Políticas de contraseñas</li>
+                                        <li><i class="fas fa-check text-success"></i> Tiempos de sesión</li>
+                                        <li><i class="fas fa-check text-success"></i> Control de acceso</li>
+                                        <li><i class="fas fa-check text-success"></i> Auditoría del sistema</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Información Importante</h6>
+                            <p class="mb-0">
+                                Los cambios en la configuración del sistema pueden afectar el comportamiento 
+                                de toda la plataforma. Se recomienda realizar cambios con precaución y 
+                                notificar al equipo de operaciones.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -63,7 +63,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.AuditoriaMiddleware',
+    
+    # Middlewares personalizados (en el orden correcto)
+    'apps.core.middleware.AuditoriaMiddleware',
+    'apps.core.middleware.ValidacionPermisosMiddleware',
+    'apps.core.middleware.SeguridadHeadersMiddleware', 
 ]
 
 ROOT_URLCONF = 'LogiCo_.urls'

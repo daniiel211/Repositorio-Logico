@@ -1,7 +1,7 @@
 <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
     <div class="position-sticky pt-3">
         <!-- Módulos para Gerente -->
-        {% if user.es_gerente or user.is_superuser %}
+        {% if perms.core.change_configuracionsistema or user.is_superuser %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Administración</span>
         </h6>
@@ -12,51 +12,69 @@
                     Gestión de Usuarios
                 </a>
             </li>
+            
+            <!-- Configuración del Sistema - Solo Gerente -->
+            {% if perms.core.change_configuracionsistema %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:configuracion_sistema' %}">
+                    <i class="fas fa-cogs"></i>
+                    Configuración Sistema
+                </a>
+            </li>
+            {% endif %}
         </ul>
         {% endif %}
 
         <!-- Módulos para Supervisor y Gerente -->
-        {% if user.es_supervisor or user.es_gerente or user.is_superuser %}
+        {% if perms.farmacia.view_farmacia or perms.motorista.view_motorista or perms.moto.view_moto %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Gestión del Sistema</span>
         </h6>
         <ul class="nav flex-column">
             <!-- Gestión de Farmacias -->
+            {% if perms.farmacia.view_farmacia %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'farmacia:list' %}">
                     <i class="fas fa-clinic-medical"></i>
                     Farmacias
                 </a>
             </li>
+            {% endif %}
             
             <!-- Gestión de Motoristas -->
+            {% if perms.motorista.view_motorista %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'motorista:list' %}">
                     <i class="fas fa-user-tie"></i>
                     Motoristas
                 </a>
             </li>
+            {% endif %}
             
             <!-- Gestión de Motos -->
+            {% if perms.moto.view_moto %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'moto:listar' %}">
                     <i class="fas fa-motorcycle"></i>
                     Motos
                 </a>
             </li>
+            {% endif %}
             
             <!-- Sistema de Asignaciones -->
+            {% if perms.asignacion.view_asignacionmoto or perms.asignacion.view_asignacionfarmacia %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'asignacion:dashboard' %}">
                     <i class="fas fa-tasks"></i>
                     Asignaciones
                 </a>
             </li>
+            {% endif %}
         </ul>
         {% endif %}
 
-        <!-- Módulos para Operadores, Supervisores y Gerentes -->
-        {% if user.es_operador or user.es_supervisor or user.es_gerente or user.is_superuser %}
+        <!-- Módulos para Operaciones -->
+        {% if perms.movimiento.view_movimiento %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Operaciones</span>
         </h6>
@@ -77,7 +95,8 @@
                 </a>
             </li>
             
-            <!-- Creación de Movimientos -->
+            <!-- Creación de Movimientos - Solo con permiso add -->
+            {% if perms.movimiento.add_movimiento %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                     <i class="fas fa-plus-circle"></i>
@@ -101,28 +120,22 @@
                     </li>
                 </ul>
             </li>
+            {% endif %}
             
-            <!-- Seguimiento (Pendiente de implementación) -->
-            <li class="nav-item">
-                <a class="nav-link text-muted" href="#" style="cursor: not-allowed;">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Seguimiento en Tiempo Real
-                    <small class="badge bg-warning ms-1">Próximamente</small>
-                </a>
-            </li>
-            
-            <!-- Incidencias (Pendiente de implementación) -->
+            <!-- Incidencias -->
+            {% if perms.configuracion.view_incidencia %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'configuracion:dashboard' %}">
                     <i class="fas fa-exclamation-triangle"></i>
                     Gestión de Incidencias
                 </a>
             </li>
+            {% endif %}
         </ul>
         {% endif %}
 
-        <!-- Módulos para Gerente -->
-        {% if user.es_gerente or user.is_superuser %}
+        <!-- Módulos para Reportes - Solo Gerente -->
+        {% if perms.reporte.view_reporte or user.is_superuser %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Reportes y Analytics</span>
         </h6>
@@ -163,14 +176,6 @@
                     Reportes Asignaciones
                 </a>
             </li>
-            
-            <!-- Historial de Reportes -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'reporte:historial' %}">
-                    <i class="fas fa-history"></i>
-                    Historial de Reportes
-                </a>
-            </li>
         </ul>
         {% endif %}
 
@@ -196,15 +201,6 @@
                 </a>
             </li>
             
-            <!-- Ruta del Día (Pendiente de implementación) -->
-            <li class="nav-item">
-                <a class="nav-link text-muted" href="#" style="cursor: not-allowed;">
-                    <i class="fas fa-map-marked-alt"></i>
-                    Mi Ruta del Día
-                    <small class="badge bg-warning ms-1">Próximamente</small>
-                </a>
-            </li>
-            
             <!-- Historial de Entregas -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'movimiento:list' %}?estado=completado&motorista={{ user.id }}">
@@ -215,7 +211,8 @@
         </ul>
         {% endif %}
 
-        <!-- Módulo Común para Todos los Usuarios -->
+        <!-- Módulo Común para Todos los Usuarios Autenticados -->
+        {% if user.is_authenticated %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Mi Cuenta</span>
         </h6>
@@ -232,6 +229,17 @@
                     Cambiar Contraseña
                 </a>
             </li>
+            
+            <!-- Enlace a Estadísticas Avanzadas - Solo con permiso -->
+            {% if perms.core.view_estadisticas %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:estadisticas_avanzadas' %}">
+                    <i class="fas fa-chart-line"></i>
+                    Estadísticas Avanzadas
+                </a>
+            </li>
+            {% endif %}
         </ul>
+        {% endif %}
     </div>
 </nav>
