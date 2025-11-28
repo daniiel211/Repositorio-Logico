@@ -414,16 +414,49 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Solo actualizar automáticamente si el usuario tiene permisos de supervisión
-        // Usamos una variable JavaScript para determinar si actualizar
+        // Determinar si el usuario tiene permisos de supervisión
+        // Usando una variable JavaScript generada por Django
         var tienePermisosSupervision = {% if perms.core.view_estadisticas or user.es_supervisor or user.es_gerente %}true{% else %}false{% endif %};
         
         if (tienePermisosSupervision) {
+            console.log('Usuario con permisos de supervisión - Actualización automática activada');
+            
             // Actualizar datos cada 60 segundos
             setInterval(function() {
+                console.log('Actualizando dashboard automáticamente...');
                 location.reload();
             }, 60000);
+        } else {
+            console.log('Usuario sin permisos de supervisión - Actualización automática desactivada');
         }
+
+        // Funcionalidad adicional para el dashboard
+        $('.card').hover(
+            function() {
+                $(this).addClass('shadow-lg');
+            },
+            function() {
+                $(this).removeClass('shadow-lg');
+            }
+        );
+
+        // Tooltips para elementos informativos
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Actualizar hora actual cada minuto
+        function actualizarHora() {
+            var ahora = new Date();
+            var hora = ahora.toLocaleTimeString('es-CL');
+            $('#hora-actual').text('Hora actual: ' + hora);
+        }
+
+        // Crear elemento para mostrar la hora si no existe
+        if ($('#hora-actual').length === 0) {
+            $('<div id="hora-actual" class="text-muted small text-end mb-2"></div>').insertBefore('.d-sm-flex');
+        }
+
+        actualizarHora();
+        setInterval(actualizarHora, 60000);
     });
 </script>
 {% endblock %}
