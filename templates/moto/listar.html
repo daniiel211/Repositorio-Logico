@@ -4,13 +4,12 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-list"></i> Lista de Motos</h1>
-    <a href="{% url 'moto:crear' %}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nueva Moto
-    </a>
+    <h1>Lista de Motos</h1>
+    {% if perms.moto.add_moto %}
+    <a href="{% url 'moto:crear' %}" class="btn btn-primary">Nueva Moto</a>
+    {% endif %}
 </div>
 
-<!-- Formulario de Búsqueda -->
 <div class="card mb-4">
     <div class="card-body">
         <form method="get" class="row g-3">
@@ -21,15 +20,12 @@
                 {{ form.estado }}
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-outline-primary w-100">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
+                <button type="submit" class="btn btn-outline-primary w-100">Buscar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Tabla de Motos -->
 <div class="card">
     <div class="card-body">
         {% if motos %}
@@ -69,23 +65,21 @@
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
-                                <a href="{% url 'moto:detalle' moto.patente %}" 
-                                   class="btn btn-outline-info" title="Ver detalle">
-                                    <i class="fas fa-eye"></i>
+                                <a href="{% url 'moto:detalle' moto.patente %}" class="btn btn-outline-info" title="Ver detalle">
+                                    Ver
                                 </a>
-                                <a href="{% url 'moto:editar' moto.patente %}" 
-                                   class="btn btn-outline-primary" title="Editar">
-                                    <i class="fas fa-edit"></i>
+                                {% if perms.moto.change_moto %}
+                                <a href="{% url 'moto:editar' moto.patente %}" class="btn btn-outline-primary" title="Editar">
+                                    Editar
                                 </a>
-                                {% if moto.activo %}
-                                <a href="{% url 'moto:eliminar' moto.patente %}" 
-                                   class="btn btn-outline-warning" title="Desactivar">
-                                    <i class="fas fa-ban"></i>
+                                {% endif %}
+                                {% if moto.activo and perms.moto.delete_moto %}
+                                <a href="{% url 'moto:eliminar' moto.patente %}" class="btn btn-outline-warning" title="Desactivar">
+                                    Desactivar
                                 </a>
-                                {% else %}
-                                <a href="{% url 'moto:reactivar' moto.patente %}" 
-                                   class="btn btn-outline-success" title="Reactivar">
-                                    <i class="fas fa-check"></i>
+                                {% elif not moto.activo and perms.moto.change_moto %}
+                                <a href="{% url 'moto:reactivar' moto.patente %}" class="btn btn-outline-success" title="Reactivar">
+                                    Reactivar
                                 </a>
                                 {% endif %}
                             </div>
@@ -97,12 +91,11 @@
         </div>
         {% else %}
         <div class="text-center py-4">
-            <i class="fas fa-motorcycle fa-3x text-muted mb-3"></i>
             <h4>No se encontraron motos</h4>
             <p class="text-muted">No hay motos que coincidan con tu búsqueda.</p>
-            <a href="{% url 'moto:crear' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Registrar Primera Moto
-            </a>
+            {% if perms.moto.add_moto %}
+            <a href="{% url 'moto:crear' %}" class="btn btn-primary">Registrar Primera Moto</a>
+            {% endif %}
         </div>
         {% endif %}
     </div>

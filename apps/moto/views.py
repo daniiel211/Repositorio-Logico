@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import Moto
 from .forms import MotoForm, MotoSearchForm
 
 @login_required
+@permission_required('moto.view_moto', raise_exception=True)
 def dashboard_moto(request):
     """Dashboard principal del módulo moto"""
     total_motos = Moto.objects.count()
@@ -24,6 +25,7 @@ def dashboard_moto(request):
     return render(request, 'moto/dashboard.html', context)
 
 @login_required
+@permission_required('moto.view_moto', raise_exception=True)
 def listar_motos(request):
     """Lista todas las motos con opciones de búsqueda y filtro"""
     form = MotoSearchForm(request.GET or None)
@@ -52,6 +54,7 @@ def listar_motos(request):
     return render(request, 'moto/listar.html', context)
 
 @login_required
+@permission_required('moto.add_moto', raise_exception=True)
 def crear_moto(request):
     """Crea una nueva moto"""
     if request.method == 'POST':
@@ -69,6 +72,7 @@ def crear_moto(request):
     return render(request, 'moto/form_moto.html', context)
 
 @login_required
+@permission_required('moto.change_moto', raise_exception=True)
 def editar_moto(request, patente):
     """Edita una moto existente"""
     moto = get_object_or_404(Moto, patente=patente)
@@ -88,6 +92,7 @@ def editar_moto(request, patente):
     return render(request, 'moto/form_moto.html', context)
 
 @login_required
+@permission_required('moto.delete_moto', raise_exception=True)
 def eliminar_moto(request, patente):
     """Eliminación suave de una moto"""
     moto = get_object_or_404(Moto, patente=patente)
@@ -101,6 +106,7 @@ def eliminar_moto(request, patente):
     return render(request, 'moto/confirmar_eliminar.html', context)
 
 @login_required
+@permission_required('moto.change_moto', raise_exception=True)
 def reactivar_moto(request, patente):
     """Reactiva una moto previamente desactivada"""
     moto = get_object_or_404(Moto, patente=patente)
@@ -114,6 +120,7 @@ def reactivar_moto(request, patente):
     return render(request, 'moto/confirmar_reactivar.html', context)
 
 @login_required
+@permission_required('moto.view_moto', raise_exception=True)
 def detalle_moto(request, patente):
     """Muestra el detalle completo de una moto"""
     moto = get_object_or_404(Moto, patente=patente)

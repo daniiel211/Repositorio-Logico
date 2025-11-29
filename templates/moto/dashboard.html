@@ -5,14 +5,11 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">
-            <i class="fas fa-tachometer-alt"></i> Dashboard - Gestión de Motos
-        </h1>
+        <h1 class="mb-4">Dashboard - Gestión de Motos</h1>
     </div>
 </div>
 
 <div class="row mb-4">
-    <!-- Tarjeta Total Motos -->
     <div class="col-md-3 mb-3">
         <div class="card text-white bg-primary">
             <div class="card-body">
@@ -21,15 +18,11 @@
                         <h4 class="card-title">{{ total_motos }}</h4>
                         <p class="card-text">Total Motos</p>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-motorcycle fa-2x"></i>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tarjeta Motos Activas -->
     <div class="col-md-3 mb-3">
         <div class="card text-white bg-success">
             <div class="card-body">
@@ -38,15 +31,11 @@
                         <h4 class="card-title">{{ motos_activas }}</h4>
                         <p class="card-text">Motos Activas</p>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x"></i>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tarjeta Motos Inactivas -->
     <div class="col-md-3 mb-3">
         <div class="card text-white bg-warning">
             <div class="card-body">
@@ -55,15 +44,11 @@
                         <h4 class="card-title">{{ motos_inactivas }}</h4>
                         <p class="card-text">Motos Inactivas</p>
                     </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-times-circle fa-2x"></i>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tarjeta Sin Documentos -->
     <div class="col-md-3 mb-3">
         <div class="card text-white bg-danger">
             <div class="card-body">
@@ -71,9 +56,6 @@
                     <div>
                         <h4 class="card-title">{{ motos_sin_documentos }}</h4>
                         <p class="card-text">Sin Documentos</p>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-file-excel fa-2x"></i>
                     </div>
                 </div>
             </div>
@@ -85,17 +67,17 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-bolt"></i> Acciones Rápidas
-                </h5>
+                <h5 class="card-title mb-0">Acciones Rápidas</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
+                    {% if perms.moto.add_moto %}
                     <a href="{% url 'moto:crear' %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-plus"></i> Registrar Nueva Moto
+                        Registrar Nueva Moto
                     </a>
+                    {% endif %}
                     <a href="{% url 'moto:listar' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-list"></i> Ver Todas las Motos
+                        Ver Todas las Motos
                     </a>
                 </div>
             </div>
@@ -105,9 +87,7 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-chart-pie"></i> Resumen de Estado
-                </h5>
+                <h5 class="card-title mb-0">Resumen de Estado</h5>
             </div>
             <div class="card-body">
                 <div class="progress mb-3" style="height: 30px;">
@@ -131,15 +111,17 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-info-circle"></i> Información del Sistema
-                </h5>
+                <h5 class="card-title mb-0">Información del Sistema</h5>
             </div>
             <div class="card-body">
                 <p>Bienvenido al módulo de gestión de motos de LogiCo. Desde aquí puedes:</p>
                 <ul>
+                    {% if perms.moto.add_moto %}
                     <li>Registrar nuevas motos en el sistema</li>
+                    {% endif %}
+                    {% if perms.moto.change_moto or perms.moto.delete_moto %}
                     <li>Gestionar el estado de las motos (activas/inactivas)</li>
+                    {% endif %}
                     <li>Ver y administrar todos los documentos relacionados</li>
                     <li>Realizar búsquedas y filtros avanzados</li>
                 </ul>

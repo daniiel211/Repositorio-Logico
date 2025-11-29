@@ -57,12 +57,26 @@
             
             <!-- Gestión de Motos -->
             {% if perms.moto.view_moto %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'moto:listar' %}">
-                    <i class="fas fa-motorcycle"></i>
-                    Motos
-                </a>
-            </li>
+            <h6 class="sidebar-heading">Gestión de Motos</h6>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'moto:dashboard' %}">
+                        Dashboard Motos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'moto:listar' %}">
+                        Lista de Motos
+                    </a>
+                </li>
+                {% if perms.moto.add_moto %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'moto:crear' %}">
+                        Registrar Moto
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
             {% endif %}
             
             <!-- Sistema de Asignaciones -->

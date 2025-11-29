@@ -1,6 +1,6 @@
 """
 Script para crear usuarios, grupos y asignar permisos en el sistema LogiCo
-INCLUYE PERMISOS PARA APLICACIÓN FARMACIA
+INCLUYE PERMISOS PARA APLICACIONES FARMACIA Y MOTO
 Ejecutar: python manage.py shell < crear_usuarios_roles.py
 """
 
@@ -29,40 +29,24 @@ def crear_grupos_y_permisos():
     if created:
         print("Grupo 'Gerentes' creado")
     
-    # Permisos específicos para usuario
+    # Permisos específicos para todas las aplicaciones
     permisos_gerente = [
         # Usuario (acceso completo)
         'add_usuario', 'change_usuario', 'delete_usuario', 'view_usuario',
         # Farmacia (acceso completo)
         'add_farmacia', 'change_farmacia', 'delete_farmacia', 'view_farmacia',
+        # Moto (acceso completo)
+        'add_moto', 'change_moto', 'delete_moto', 'view_moto',
     ]
     
-    # Obtener content types
-    try:
-        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
-        farmacia_content_type = ContentType.objects.get(app_label='farmacia', model='farmacia')
-        
-        for perm_codename in permisos_gerente:
-            try:
-                # Determinar content type basado en el prefijo del permiso
-                if perm_codename.startswith(('add_', 'change_', 'delete_', 'view_')):
-                    if 'usuario' in perm_codename:
-                        content_type = usuario_content_type
-                    elif 'farmacia' in perm_codename:
-                        content_type = farmacia_content_type
-                    else:
-                        continue
-                
-                perm = Permission.objects.get(
-                    content_type=content_type,
-                    codename=perm_codename
-                )
-                gerente_group.permissions.add(perm)
-                print(f"Permiso asignado: {perm_codename}")
-            except Permission.DoesNotExist:
-                print(f"Permiso no encontrado: {perm_codename}")
-    except ContentType.DoesNotExist as e:
-        print(f"ContentType no encontrado: {e}")
+    # Asignar permisos al grupo Gerente
+    for perm_codename in permisos_gerente:
+        try:
+            perm = Permission.objects.get(codename=perm_codename)
+            gerente_group.permissions.add(perm)
+            print(f"Permiso asignado a Gerentes: {perm_codename}")
+        except Permission.DoesNotExist:
+            print(f"Permiso no encontrado: {perm_codename}")
     
     print(f"Permisos asignados a Gerentes: {gerente_group.permissions.count()}")
 
@@ -76,33 +60,17 @@ def crear_grupos_y_permisos():
         'change_usuario', 'view_usuario',
         # Farmacia (ver y editar)
         'change_farmacia', 'view_farmacia',
+        # Moto (ver y editar)
+        'change_moto', 'view_moto',
     ]
     
-    try:
-        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
-        farmacia_content_type = ContentType.objects.get(app_label='farmacia', model='farmacia')
-        
-        for perm_codename in permisos_supervisor:
-            try:
-                # Determinar content type basado en el prefijo del permiso
-                if perm_codename.startswith(('add_', 'change_', 'delete_', 'view_')):
-                    if 'usuario' in perm_codename:
-                        content_type = usuario_content_type
-                    elif 'farmacia' in perm_codename:
-                        content_type = farmacia_content_type
-                    else:
-                        continue
-                
-                perm = Permission.objects.get(
-                    content_type=content_type,
-                    codename=perm_codename
-                )
-                supervisor_group.permissions.add(perm)
-                print(f"Permiso asignado: {perm_codename}")
-            except Permission.DoesNotExist:
-                print(f"Permiso no encontrado: {perm_codename}")
-    except ContentType.DoesNotExist as e:
-        print(f"ContentType no encontrado: {e}")
+    for perm_codename in permisos_supervisor:
+        try:
+            perm = Permission.objects.get(codename=perm_codename)
+            supervisor_group.permissions.add(perm)
+            print(f"Permiso asignado a Supervisores: {perm_codename}")
+        except Permission.DoesNotExist:
+            print(f"Permiso no encontrado: {perm_codename}")
     
     print(f"Permisos asignados a Supervisores: {supervisor_group.permissions.count()}")
 
@@ -116,33 +84,17 @@ def crear_grupos_y_permisos():
         'view_usuario',
         # Farmacia (solo ver)
         'view_farmacia',
+        # Moto (solo ver)
+        'view_moto',
     ]
     
-    try:
-        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
-        farmacia_content_type = ContentType.objects.get(app_label='farmacia', model='farmacia')
-        
-        for perm_codename in permisos_operador:
-            try:
-                # Determinar content type basado en el prefijo del permiso
-                if perm_codename.startswith(('add_', 'change_', 'delete_', 'view_')):
-                    if 'usuario' in perm_codename:
-                        content_type = usuario_content_type
-                    elif 'farmacia' in perm_codename:
-                        content_type = farmacia_content_type
-                    else:
-                        continue
-                
-                perm = Permission.objects.get(
-                    content_type=content_type,
-                    codename=perm_codename
-                )
-                operador_group.permissions.add(perm)
-                print(f"Permiso asignado: {perm_codename}")
-            except Permission.DoesNotExist:
-                print(f"Permiso no encontrado: {perm_codename}")
-    except ContentType.DoesNotExist as e:
-        print(f"ContentType no encontrado: {e}")
+    for perm_codename in permisos_operador:
+        try:
+            perm = Permission.objects.get(codename=perm_codename)
+            operador_group.permissions.add(perm)
+            print(f"Permiso asignado a Operadores: {perm_codename}")
+        except Permission.DoesNotExist:
+            print(f"Permiso no encontrado: {perm_codename}")
     
     print(f"Permisos asignados a Operadores: {operador_group.permissions.count()}")
 
@@ -156,33 +108,17 @@ def crear_grupos_y_permisos():
         'view_usuario',
         # Farmacia (solo ver)
         'view_farmacia',
+        # Moto (solo ver)
+        'view_moto',
     ]
     
-    try:
-        usuario_content_type = ContentType.objects.get(app_label='usuario', model='usuario')
-        farmacia_content_type = ContentType.objects.get(app_label='farmacia', model='farmacia')
-        
-        for perm_codename in permisos_motorista:
-            try:
-                # Determinar content type basado en el prefijo del permiso
-                if perm_codename.startswith(('add_', 'change_', 'delete_', 'view_')):
-                    if 'usuario' in perm_codename:
-                        content_type = usuario_content_type
-                    elif 'farmacia' in perm_codename:
-                        content_type = farmacia_content_type
-                    else:
-                        continue
-                
-                perm = Permission.objects.get(
-                    content_type=content_type,
-                    codename=perm_codename
-                )
-                motorista_group.permissions.add(perm)
-                print(f"Permiso asignado: {perm_codename}")
-            except Permission.DoesNotExist:
-                print(f"Permiso no encontrado: {perm_codename}")
-    except ContentType.DoesNotExist as e:
-        print(f"ContentType no encontrado: {e}")
+    for perm_codename in permisos_motorista:
+        try:
+            perm = Permission.objects.get(codename=perm_codename)
+            motorista_group.permissions.add(perm)
+            print(f"Permiso asignado a Motoristas: {perm_codename}")
+        except Permission.DoesNotExist:
+            print(f"Permiso no encontrado: {perm_codename}")
     
     print(f"Permisos asignados a Motoristas: {motorista_group.permissions.count()}")
     
@@ -361,14 +297,12 @@ def verificar_creacion():
     for grupo in grupos:
         permisos = grupo.permissions.all()
         print(f"- {grupo.name}: {permisos.count()} permisos")
-        # Mostrar permisos por aplicación
-        permisos_usuario = permisos.filter(content_type__app_label='usuario')
-        permisos_farmacia = permisos.filter(content_type__app_label='farmacia')
         
-        if permisos_usuario:
-            print(f"  Usuario: {', '.join([p.codename for p in permisos_usuario])}")
-        if permisos_farmacia:
-            print(f"  Farmacia: {', '.join([p.codename for p in permisos_farmacia])}")
+        # Mostrar permisos por aplicación
+        for app_label in ['usuario', 'farmacia', 'moto']:
+            permisos_app = permisos.filter(content_type__app_label=app_label)
+            if permisos_app:
+                print(f"  {app_label.capitalize()}: {', '.join([p.codename for p in permisos_app])}")
     
     # Verificar usuarios
     usuarios = User.objects.all().order_by('rol')
@@ -387,92 +321,10 @@ def verificar_creacion():
     print(f"RESUMEN:")
     print(f"Total usuarios: {usuarios.count()}")
     print(f"Total grupos: {grupos.count()}")
-    
-    # Contar por rol
-    roles_count = {}
-    for usuario in usuarios:
-        rol = usuario.rol
-        roles_count[rol] = roles_count.get(rol, 0) + 1
-    
-    print(f"Usuarios por rol: {roles_count}")
-
-def probar_permisos():
-    """Prueba los permisos asignados a los usuarios"""
-    
-    print("\nPROBANDO PERMISOS")
-    
-    usuarios = User.objects.all()
-    
-    for usuario in usuarios:
-        print(f"\nPermisos de {usuario.username} ({usuario.rol}):")
-        
-        # Verificar permisos específicos de usuario
-        permisos_usuario = [
-            'usuario.add_usuario',
-            'usuario.change_usuario', 
-            'usuario.delete_usuario',
-            'usuario.view_usuario'
-        ]
-        
-        # Verificar permisos específicos de farmacia
-        permisos_farmacia = [
-            'farmacia.add_farmacia',
-            'farmacia.change_farmacia',
-            'farmacia.delete_farmacia', 
-            'farmacia.view_farmacia'
-        ]
-        
-        print("  PERMISOS USUARIO:")
-        for permiso in permisos_usuario:
-            tiene_permiso = usuario.has_perm(permiso)
-            print(f"    {permiso}: {'✅' if tiene_permiso else '❌'}")
-        
-        print("  PERMISOS FARMACIA:")
-        for permiso in permisos_farmacia:
-            tiene_permiso = usuario.has_perm(permiso)
-            print(f"    {permiso}: {'✅' if tiene_permiso else '❌'}")
-        
-        # Verificar permisos a través de grupos
-        print(f"  Grupos: {[g.name for g in usuario.groups.all()]}")
-        print(f"  Permisos totales: {usuario.get_all_permissions().count()}")
-
-def probar_acceso_farmacia():
-    """Prueba específica de permisos de farmacia"""
-    
-    print("\n" + "="*50)
-    print("PRUEBA ESPECÍFICA - PERMISOS FARMACIA")
-    print("="*50)
-    
-    usuarios = User.objects.all()
-    
-    for usuario in usuarios:
-        print(f"\n🔍 {usuario.username} ({usuario.rol}):")
-        
-        # Permisos de farmacia
-        permisos_farmacia = {
-            'Ver farmacias': 'farmacia.view_farmacia',
-            'Crear farmacias': 'farmacia.add_farmacia', 
-            'Editar farmacias': 'farmacia.change_farmacia',
-            'Eliminar farmacias': 'farmacia.delete_farmacia'
-        }
-        
-        for accion, permiso in permisos_farmacia.items():
-            tiene_permiso = usuario.has_perm(permiso)
-            print(f"  {accion}: {'✅ PERMITIDO' if tiene_permiso else '❌ DENEGADO'}")
-        
-        # Resumen del rol
-        if usuario.rol == 'gerente':
-            print("  📋 RESUMEN: Acceso completo a gestión de farmacias")
-        elif usuario.rol == 'supervisor':
-            print("  📋 RESUMEN: Puede ver y editar farmacias, pero no crear/eliminar")
-        elif usuario.rol == 'operador':
-            print("  📋 RESUMEN: Solo lectura de farmacias")
-        elif usuario.rol == 'motorista':
-            print("  📋 RESUMEN: Solo lectura de farmacias (acceso limitado)")
 
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
-    print("INCLUYENDO PERMISOS DE FARMACIA")
+    print("INCLUYENDO PERMISOS DE FARMACIA Y MOTO")
     print("=" * 60)
     
     try:
@@ -492,69 +344,61 @@ if __name__ == "__main__":
         print("\nFASE 4: Verificando creación...")
         verificar_creacion()
         
-        # Probar permisos generales
-        print("\nFASE 5: Probando permisos generales...")
-        probar_permisos()
-        
-        # Probar permisos específicos de farmacia
-        print("\nFASE 6: Probando permisos de farmacia...")
-        probar_acceso_farmacia()
-        
         print("\n" + "=" * 60)
         print("PROCESO COMPLETADO EXITOSAMENTE")
         print("=" * 60)
         
-        print("\n🔐 CREDENCIALES DE ACCESO:")
+        print("\nCREDENCIALES DE ACCESO:")
         print("Superusuario (acceso total):")
-        print("  👤 Usuario: admin.logico")
-        print("  🔑 Password: AdminLogico.2025")
+        print("  Usuario: admin.logico")
+        print("  Password: AdminLogico.2025")
         
-        print("\n👥 Usuarios por rol:")
-        print("  🎯 Gerente (Acceso completo):")
-        print("    👤 Usuario: gerente.logico")
-        print("    🔑 Password: LogicoGerente.2025")
+        print("\nUsuarios por rol:")
+        print("  Gerente (Acceso completo):")
+        print("    Usuario: gerente.logico")
+        print("    Password: LogicoGerente.2025")
         
-        print("  📊 Supervisor (Gestión operativa):")
-        print("    👤 Usuario: supervisor.logico")  
-        print("    🔑 Password: LogicoSupervisor.2025")
+        print("  Supervisor (Gestión operativa):")
+        print("    Usuario: supervisor.logico")  
+        print("    Password: LogicoSupervisor.2025")
         
-        print("  ⚙️ Operador (Operaciones básicas):")
-        print("    👤 Usuario: operador.logico")
-        print("    🔑 Password: LogicoOperador.2025")
+        print("  Operador (Operaciones básicas):")
+        print("    Usuario: operador.logico")
+        print("    Password: LogicoOperador.2025")
         
-        print("  🏍️ Motorista (Acceso limitado):")
-        print("    👤 Usuario: motorista.logico")
-        print("    🔑 Password: LogicoMotorista.2025")
+        print("  Motorista (Acceso limitado):")
+        print("    Usuario: motorista.logico")
+        print("    Password: LogicoMotorista.2025")
         
-        print("\n📋 PERMISOS POR ROL - FARMACIA:")
-        print("  🎯 Gerente:")
-        print("    ✅ Crear farmacias")
-        print("    ✅ Editar farmacias") 
-        print("    ✅ Eliminar farmacias")
-        print("    ✅ Ver farmacias")
+        print("\nPERMISOS POR ROL - MOTO:")
+        print("  Gerente:")
+        print("    Crear motos: PERMITIDO")
+        print("    Editar motos: PERMITIDO") 
+        print("    Eliminar motos: PERMITIDO")
+        print("    Ver motos: PERMITIDO")
         
-        print("  📊 Supervisor:")
-        print("    ❌ Crear farmacias")
-        print("    ✅ Editar farmacias")
-        print("    ❌ Eliminar farmacias") 
-        print("    ✅ Ver farmacias")
+        print("  Supervisor:")
+        print("    Crear motos: DENEGADO")
+        print("    Editar motos: PERMITIDO")
+        print("    Eliminar motos: DENEGADO") 
+        print("    Ver motos: PERMITIDO")
         
-        print("  ⚙️ Operador:")
-        print("    ❌ Crear farmacias")
-        print("    ❌ Editar farmacias")
-        print("    ❌ Eliminar farmacias")
-        print("    ✅ Ver farmacias")
+        print("  Operador:")
+        print("    Crear motos: DENEGADO")
+        print("    Editar motos: DENEGADO")
+        print("    Eliminar motos: DENEGADO")
+        print("    Ver motos: PERMITIDO")
         
-        print("  🏍️ Motorista:")
-        print("    ❌ Crear farmacias")
-        print("    ❌ Editar farmacias")
-        print("    ❌ Eliminar farmacias")
-        print("    ✅ Ver farmacias")
+        print("  Motorista:")
+        print("    Crear motos: DENEGADO")
+        print("    Editar motos: DENEGADO")
+        print("    Eliminar motos: DENEGADO")
+        print("    Ver motos: PERMITIDO")
         
-        print("\n💡 NOTA: Los permisos se aplican automáticamente al sistema de control de acceso.")
-        print("   Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")
+        print("\nNOTA: Los permisos se aplican automáticamente al sistema de control de acceso.")
+        print("Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")
         
     except Exception as e:
-        print(f"❌ ERROR: {e}")
+        print(f"ERROR: {e}")
         import traceback
         traceback.print_exc()
