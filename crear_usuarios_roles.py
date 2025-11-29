@@ -1,6 +1,6 @@
 """
 Script para crear usuarios, grupos y asignar permisos en el sistema LogiCo
-INCLUYE PERMISOS PARA APLICACIONES FARMACIA, MOTO Y MOTORISTA
+INCLUYE PERMISOS PARA APLICACIONES: USUARIO, FARMACIA, MOTO, MOTORISTA Y ASIGNACION
 Ejecutar: python manage.py shell < crear_usuarios_roles.py
 """
 
@@ -39,6 +39,11 @@ def crear_grupos_y_permisos():
         'add_moto', 'change_moto', 'delete_moto', 'view_moto',
         # Motorista (acceso completo)
         'add_motorista', 'change_motorista', 'delete_motorista', 'view_motorista',
+        # Asignación (acceso completo)
+        'add_asignacionmoto', 'change_asignacionmoto', 'delete_asignacionmoto', 'view_asignacionmoto',
+        'add_asignacionfarmacia', 'change_asignacionfarmacia', 'delete_asignacionfarmacia', 'view_asignacionfarmacia',
+        # Core (acceso completo)
+        'view_dashboard', 'view_estadisticas', 'change_configuracionsistema',
     ]
     
     # Asignar permisos al grupo Gerente
@@ -66,6 +71,11 @@ def crear_grupos_y_permisos():
         'change_moto', 'view_moto',
         # Motorista (ver y editar)
         'change_motorista', 'view_motorista',
+        # Asignación (ver y editar)
+        'add_asignacionmoto', 'change_asignacionmoto', 'view_asignacionmoto',
+        'add_asignacionfarmacia', 'change_asignacionfarmacia', 'view_asignacionfarmacia',
+        # Core (vista limitada)
+        'view_dashboard', 'view_estadisticas',
     ]
     
     for perm_codename in permisos_supervisor:
@@ -92,6 +102,10 @@ def crear_grupos_y_permisos():
         'view_moto',
         # Motorista (solo ver)
         'view_motorista',
+        # Asignación (solo ver)
+        'view_asignacionmoto', 'view_asignacionfarmacia',
+        # Core (solo dashboard)
+        'view_dashboard',
     ]
     
     for perm_codename in permisos_operador:
@@ -116,8 +130,12 @@ def crear_grupos_y_permisos():
         'view_farmacia',
         # Moto (solo ver)
         'view_moto',
-        # Motorista (solo ver)
+        # Motorista (solo ver propio perfil)
         'view_motorista',
+        # Asignación (solo ver propias asignaciones)
+        'view_asignacionmoto', 'view_asignacionfarmacia',
+        # Core (solo dashboard básico)
+        'view_dashboard',
     ]
     
     for perm_codename in permisos_motorista:
@@ -307,10 +325,10 @@ def verificar_creacion():
         print(f"- {grupo.name}: {permisos.count()} permisos")
         
         # Mostrar permisos por aplicación
-        for app_label in ['usuario', 'farmacia', 'moto', 'motorista']:
+        for app_label in ['usuario', 'farmacia', 'moto', 'motorista', 'asignacion', 'core']:
             permisos_app = permisos.filter(content_type__app_label=app_label)
             if permisos_app:
-                print(f"  {app_label.capitalize()}: {', '.join([p.codename for p in permisos_app])}")
+                print(f"  {app_label.capitalize()}: {permisos_app.count()} permisos")
     
     # Verificar usuarios
     usuarios = User.objects.all().order_by('rol')
@@ -330,10 +348,38 @@ def verificar_creacion():
     print(f"Total usuarios: {usuarios.count()}")
     print(f"Total grupos: {grupos.count()}")
 
+def mostrar_resumen_permisos():
+    """Muestra un resumen detallado de permisos por rol"""
+    
+    print("\n" + "=" * 80)
+    print("RESUMEN DETALLADO DE PERMISOS POR ROL")
+    print("=" * 80)
+    
+    grupos = Group.objects.all()
+    
+    for grupo in grupos:
+        print(f"\n📋 {grupo.name.upper()}")
+        print("-" * 40)
+        
+        permisos = grupo.permissions.all()
+        
+        # Permisos por aplicación
+        apps_permisos = {}
+        for perm in permisos:
+            app_label = perm.content_type.app_label
+            if app_label not in apps_permisos:
+                apps_permisos[app_label] = []
+            apps_permisos[app_label].append(perm.codename)
+        
+        for app, perms in apps_permisos.items():
+            print(f"\n📁 {app.upper()}:")
+            for perm in sorted(perms):
+                print(f"  ✅ {perm}")
+
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
-    print("INCLUYENDO PERMISOS DE FARMACIA, MOTO Y MOTORISTA")
-    print("=" * 60)
+    print("INCLUYENDO PERMISOS DE: USUARIO, FARMACIA, MOTO, MOTORISTA Y ASIGNACION")
+    print("=" * 80)
     
     try:
         # Crear grupos y permisos
@@ -352,61 +398,96 @@ if __name__ == "__main__":
         print("\nFASE 4: Verificando creación...")
         verificar_creacion()
         
-        print("\n" + "=" * 60)
-        print("PROCESO COMPLETADO EXITOSAMENTE")
-        print("=" * 60)
+        # Mostrar resumen detallado
+        mostrar_resumen_permisos()
         
-        print("\nCREDENCIALES DE ACCESO:")
+        print("\n" + "=" * 80)
+        print("🎉 PROCESO COMPLETADO EXITOSAMENTE")
+        print("=" * 80)
+        
+        print("\n🔐 CREDENCIALES DE ACCESO:")
         print("Superusuario (acceso total):")
-        print("  Usuario: admin.logico")
-        print("  Password: AdminLogico.2025")
+        print("  👤 Usuario: admin.logico")
+        print("  🔑 Password: AdminLogico.2025")
         
-        print("\nUsuarios por rol:")
-        print("  Gerente (Acceso completo):")
-        print("    Usuario: gerente.logico")
-        print("    Password: LogicoGerente.2025")
+        print("\n👥 Usuarios por rol:")
+        print("  🎯 Gerente (Acceso completo):")
+        print("    👤 Usuario: gerente.logico")
+        print("    🔑 Password: LogicoGerente.2025")
         
-        print("  Supervisor (Gestión operativa):")
-        print("    Usuario: supervisor.logico")  
-        print("    Password: LogicoSupervisor.2025")
+        print("  📊 Supervisor (Gestión operativa):")
+        print("    👤 Usuario: supervisor.logico")  
+        print("    🔑 Password: LogicoSupervisor.2025")
         
-        print("  Operador (Operaciones básicas):")
-        print("    Usuario: operador.logico")
-        print("    Password: LogicoOperador.2025")
+        print("  ⚙️  Operador (Operaciones básicas):")
+        print("    👤 Usuario: operador.logico")
+        print("    🔑 Password: LogicoOperador.2025")
         
-        print("  Motorista (Acceso limitado):")
-        print("    Usuario: motorista.logico")
-        print("    Password: LogicoMotorista.2025")
+        print("  🛵 Motorista (Acceso limitado):")
+        print("    👤 Usuario: motorista.logico")
+        print("    🔑 Password: LogicoMotorista.2025")
         
-        print("\nPERMISOS POR ROL - MOTORISTA:")
-        print("  Gerente:")
-        print("    Crear motoristas: PERMITIDO")
-        print("    Editar motoristas: PERMITIDO") 
-        print("    Eliminar motoristas: PERMITIDO")
-        print("    Ver motoristas: PERMITIDO")
+        print("\n📋 PERMISOS POR ROL - ASIGNACIONES:")
+        print("  🎯 Gerente:")
+        print("    ✅ Crear asignaciones: PERMITIDO")
+        print("    ✅ Editar asignaciones: PERMITIDO") 
+        print("    ✅ Eliminar asignaciones: PERMITIDO")
+        print("    ✅ Ver asignaciones: PERMITIDO")
+        print("    ✅ Reemplazar motoristas: PERMITIDO")
         
-        print("  Supervisor:")
-        print("    Crear motoristas: DENEGADO")
-        print("    Editar motoristas: PERMITIDO")
-        print("    Eliminar motoristas: DENEGADO") 
-        print("    Ver motoristas: PERMITIDO")
+        print("  📊 Supervisor:")
+        print("    ✅ Crear asignaciones: PERMITIDO")
+        print("    ✅ Editar asignaciones: PERMITIDO")
+        print("    ❌ Eliminar asignaciones: DENEGADO") 
+        print("    ✅ Ver asignaciones: PERMITIDO")
+        print("    ✅ Reemplazar motoristas: PERMITIDO")
         
-        print("  Operador:")
-        print("    Crear motoristas: DENEGADO")
-        print("    Editar motoristas: DENEGADO")
-        print("    Eliminar motoristas: DENEGADO")
-        print("    Ver motoristas: PERMITIDO")
+        print("  ⚙️  Operador:")
+        print("    ❌ Crear asignaciones: DENEGADO")
+        print("    ❌ Editar asignaciones: DENEGADO")
+        print("    ❌ Eliminar asignaciones: DENEGADO")
+        print("    ✅ Ver asignaciones: PERMITIDO")
+        print("    ❌ Reemplazar motoristas: DENEGADO")
         
-        print("  Motorista:")
-        print("    Crear motoristas: DENEGADO")
-        print("    Editar motoristas: DENEGADO")
-        print("    Eliminar motoristas: DENEGADO")
-        print("    Ver motoristas: PERMITIDO")
+        print("  🛵 Motorista:")
+        print("    ❌ Crear asignaciones: DENEGADO")
+        print("    ❌ Editar asignaciones: DENEGADO")
+        print("    ❌ Eliminar asignaciones: DENEGADO")
+        print("    👁️  Ver asignaciones: SOLO PROPIAS")
+        print("    ❌ Reemplazar motoristas: DENEGADO")
         
-        print("\nNOTA: Los permisos se aplican automáticamente al sistema de control de acceso.")
-        print("Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")
+        print("\n🔒 PERMISOS POR ROL - USUARIOS:")
+        print("  🎯 Gerente:")
+        print("    ✅ Crear usuarios: PERMITIDO")
+        print("    ✅ Editar usuarios: PERMITIDO") 
+        print("    ✅ Eliminar usuarios: PERMITIDO")
+        print("    ✅ Ver usuarios: PERMITIDO")
+        
+        print("  📊 Supervisor:")
+        print("    ❌ Crear usuarios: DENEGADO")
+        print("    ✅ Editar usuarios: PERMITIDO")
+        print("    ❌ Eliminar usuarios: DENEGADO") 
+        print("    ✅ Ver usuarios: PERMITIDO")
+        
+        print("  ⚙️  Operador:")
+        print("    ❌ Crear usuarios: DENEGADO")
+        print("    ❌ Editar usuarios: DENEGADO")
+        print("    ❌ Eliminar usuarios: DENEGADO")
+        print("    ✅ Ver usuarios: PERMITIDO")
+        
+        print("  🛵 Motorista:")
+        print("    ❌ Crear usuarios: DENEGADO")
+        print("    ❌ Editar usuarios: DENEGADO")
+        print("    ❌ Eliminar usuarios: DENEGADO")
+        print("    👁️  Ver usuarios: SOLO PROPIO PERFIL")
+        
+        print("\n💡 NOTA IMPORTANTE:")
+        print("  • Los permisos se aplican automáticamente al sistema de control de acceso.")
+        print("  • Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")
+        print("  • El middleware de seguridad bloquea accesos no autorizados.")
+        print("  • Los motoristas solo pueden ver sus propias asignaciones y perfil.")
         
     except Exception as e:
-        print(f"ERROR: {e}")
+        print(f"❌ ERROR: {e}")
         import traceback
         traceback.print_exc()

@@ -1,3 +1,4 @@
+# apps/asignacion/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
@@ -12,8 +13,9 @@ from .forms import (
     ReemplazarMotoristaForm
 )
 
+# Permisos para asignaciones de moto
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.view_asignacionmoto', raise_exception=True)
 def dashboard_asignaciones(request):
     """Dashboard principal de asignaciones"""
     # Importar aquí para evitar dependencias circulares
@@ -46,7 +48,7 @@ def dashboard_asignaciones(request):
     return render(request, 'asignacion/dashboard.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.view_asignacionmoto', raise_exception=True)
 def listar_asignaciones_moto(request):
     """Lista todas las asignaciones de motos con filtros"""
     asignaciones = AsignacionMoto.objects.filter(activo=True).order_by('-fecha_asignacion')
@@ -71,7 +73,71 @@ def listar_asignaciones_moto(request):
     return render(request, 'asignacion/listar_motos.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.add_asignacionmoto', raise_exception=True)
+def crear_asignacion_moto(request):
+    """Crea una nueva asignación de moto"""
+    if request.method == 'POST':
+        form = AsignacionMotoForm(request.POST)
+        if form.is_valid():
+            asignacion = form.save(commit=False)
+            asignacion.creado_por = request.user
+            asignacion.save()
+            messages.success(request, 'Asignación de moto creada exitosamente.')
+            return redirect('asignacion:listar_motos')
+    else:
+        form = AsignacionMotoForm()
+    
+    context = {
+        'form': form,
+        'titulo': 'Asignar Moto a Motorista'
+    }
+    
+    return render(request, 'asignacion/form_asignacion.html', context)
+
+@login_required
+@permission_required('asignacion.change_asignacionmoto', raise_exception=True)
+def finalizar_asignacion_moto(request, id):
+    """Finaliza una asignación de moto"""
+    asignacion = get_object_or_404(AsignacionMoto, id=id, activo=True)
+    
+    if request.method == 'POST':
+        form = FinalizarAsignacionForm(request.POST)
+        if form.is_valid():
+            observaciones = form.cleaned_data['observaciones']
+            if observaciones:
+                if asignacion.observaciones:
+                    asignacion.observaciones += f"\n--- FINALIZACIÓN ---\n{observaciones}"
+                else:
+                    asignacion.observaciones = f"--- FINALIZACIÓN ---\n{observaciones}"
+            asignacion.finalizar(request.user)
+            messages.success(request, 'Asignación de moto finalizada exitosamente.')
+            return redirect('asignacion:listar_motos')
+    else:
+        form = FinalizarAsignacionForm()
+    
+    context = {
+        'form': form,
+        'asignacion': asignacion,
+        'titulo': 'Finalizar Asignación de Moto',
+        'tipo_asignacion': 'moto'
+    }
+    
+    return render(request, 'asignacion/finalizar_asignacion.html', context)
+
+@login_required
+@permission_required('asignacion.view_asignacionmoto', raise_exception=True)
+def detalle_asignacion_moto(request, id):
+    """Muestra el detalle de una asignación de moto"""
+    asignacion = get_object_or_404(AsignacionMoto, id=id, activo=True)
+    context = {
+        'asignacion': asignacion,
+        'titulo': 'Detalle Asignación de Moto'
+    }
+    return render(request, 'asignacion/detalle_moto.html', context)
+
+# Permisos para asignaciones de farmacia
+@login_required
+@permission_required('asignacion.view_asignacionfarmacia', raise_exception=True)
 def listar_asignaciones_farmacia(request):
     """Lista todas las asignaciones de farmacias con filtros"""
     asignaciones = AsignacionFarmacia.objects.filter(activo=True).order_by('-fecha_asignacion')
@@ -96,29 +162,7 @@ def listar_asignaciones_farmacia(request):
     return render(request, 'asignacion/listar_farmacias.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
-def crear_asignacion_moto(request):
-    """Crea una nueva asignación de moto"""
-    if request.method == 'POST':
-        form = AsignacionMotoForm(request.POST)
-        if form.is_valid():
-            asignacion = form.save(commit=False)
-            asignacion.creado_por = request.user
-            asignacion.save()
-            messages.success(request, 'Asignación de moto creada exitosamente.')
-            return redirect('asignacion:listar_motos')
-    else:
-        form = AsignacionMotoForm()
-    
-    context = {
-        'form': form,
-        'titulo': 'Asignar Moto a Motorista'
-    }
-    
-    return render(request, 'asignacion/form_asignacion.html', context)
-
-@login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.add_asignacionfarmacia', raise_exception=True)
 def crear_asignacion_farmacia(request):
     """Crea una nueva asignación de farmacia"""
     if request.method == 'POST':
@@ -140,37 +184,7 @@ def crear_asignacion_farmacia(request):
     return render(request, 'asignacion/form_asignacion.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
-def finalizar_asignacion_moto(request, id):
-    """Finaliza una asignación de moto"""
-    asignacion = get_object_or_404(AsignacionMoto, id=id, activo=True)
-    
-    if request.method == 'POST':
-        form = FinalizarAsignacionForm(request.POST)
-        if form.is_valid():
-            observaciones = form.cleaned_data['observaciones']
-            if observaciones:
-                if asignacion.observaciones:
-                    asignacion.observaciones += f"\n--- FINALIZACIÓN ---\n{observaciones}"
-                else:
-                    asignacion.observaciones = f"--- FINALIZACIÓN ---\n{observaciones}"
-            asignacion.finalizar(request.user)
-            messages.success(request, 'Asignación de moto finalizada exitosamente.')
-            return redirect('asignacion:listar_motos')
-    else:
-        form = FinalizarAsignacionForm()
-    
-    context = {
-        'form': form,
-        'asignacion': asignacion,
-        'titulo': 'Finalizar Asignación de Moto',
-        'tipo_asignacion': 'moto'  # Añadir tipo al contexto
-    }
-    
-    return render(request, 'asignacion/finalizar_asignacion.html', context)
-
-@login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.change_asignacionfarmacia', raise_exception=True)
 def finalizar_asignacion_farmacia(request, id):
     """Finaliza una asignación de farmacia"""
     asignacion = get_object_or_404(AsignacionFarmacia, id=id, activo=True)
@@ -194,16 +208,15 @@ def finalizar_asignacion_farmacia(request, id):
         'form': form,
         'asignacion': asignacion,
         'titulo': 'Finalizar Asignación de Farmacia',
-        'tipo_asignacion': 'farmacia'  # Añadir tipo al contexto
+        'tipo_asignacion': 'farmacia'
     }
     
     return render(request, 'asignacion/finalizar_asignacion.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.change_asignacionfarmacia', raise_exception=True)
 def reemplazar_motorista(request, farmacia_id):
     """Reemplaza un motorista en una farmacia"""
-    # Importar aquí para evitar dependencias circulares
     from apps.farmacia.models import Farmacia
     
     farmacia = get_object_or_404(Farmacia, IdFarmacia=farmacia_id, activo=True)
@@ -252,18 +265,7 @@ def reemplazar_motorista(request, farmacia_id):
     return render(request, 'asignacion/reemplazar_motorista.html', context)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
-def detalle_asignacion_moto(request, id):
-    """Muestra el detalle de una asignación de moto"""
-    asignacion = get_object_or_404(AsignacionMoto, id=id, activo=True)
-    context = {
-        'asignacion': asignacion,
-        'titulo': 'Detalle Asignación de Moto'
-    }
-    return render(request, 'asignacion/detalle_moto.html', context)
-
-@login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.view_asignacionfarmacia', raise_exception=True)
 def detalle_asignacion_farmacia(request, id):
     """Muestra el detalle de una asignación de farmacia"""
     asignacion = get_object_or_404(AsignacionFarmacia, id=id, activo=True)
@@ -275,10 +277,9 @@ def detalle_asignacion_farmacia(request, id):
 
 # API endpoints para validaciones en tiempo real
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.view_asignacionmoto', raise_exception=True)
 def validar_motorista_disponible(request):
     """Valida si un motorista está disponible para asignación"""
-    # Importar aquí para evitar dependencias circulares
     from apps.motorista.models import Motorista
     
     motorista_rut = request.GET.get('motorista_rut')
@@ -317,10 +318,9 @@ def validar_motorista_disponible(request):
     return JsonResponse({'error': 'Parámetros inválidos'}, status=400)
 
 @login_required
-@permission_required('asignacion.can_manage_asignaciones', raise_exception=True)
+@permission_required('asignacion.view_asignacionmoto', raise_exception=True)
 def validar_moto_disponible(request):
     """Valida si una moto está disponible para asignación"""
-    # Importar aquí para evitar dependencias circulares
     from apps.moto.models import Moto
     
     moto_patente = request.GET.get('moto_patente')

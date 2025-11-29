@@ -1,3 +1,4 @@
+<!-- templates/asignacion/listar_motos.html -->
 {% extends 'core/base.html' %}
 {% load static %}
 
@@ -8,9 +9,11 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 text-gray-800">Asignaciones de Moto</h1>
+        {% if perms.asignacion.add_asignacionmoto %}
         <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nueva Asignación
         </a>
+        {% endif %}
     </div>
 
     <!-- Filtros -->
@@ -96,7 +99,7 @@
                                        class="btn btn-info" title="Ver detalle">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    {% if asignacion.estado == 'ACTIVA' %}
+                                    {% if asignacion.estado == 'ACTIVA' and perms.asignacion.change_asignacionmoto %}
                                     <a href="{% url 'asignacion:finalizar_moto' asignacion.id %}" 
                                        class="btn btn-warning" title="Finalizar asignación">
                                         <i class="fas fa-flag-checkered"></i>
@@ -114,9 +117,11 @@
                 <i class="fas fa-motorcycle fa-3x text-gray-300 mb-3"></i>
                 <h5 class="text-gray-500">No se encontraron asignaciones de moto</h5>
                 <p class="text-muted">No hay asignaciones que coincidan con los criterios de búsqueda.</p>
+                {% if perms.asignacion.add_asignacionmoto %}
                 <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Crear Primera Asignación
                 </a>
+                {% endif %}
             </div>
             {% endif %}
         </div>

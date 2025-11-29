@@ -8,32 +8,34 @@
             <span><i class="fas fa-cogs me-1"></i> Administración</span>
         </h6>
         <ul class="nav flex-column mb-2">
-            <!-- Gestión de Usuarios -->
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-users me-2"></i>
-                    Gestión de Usuarios
+            <!-- Dashboard Usuarios -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'usuario:dashboard' %}">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Dashboard Usuarios
                 </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'usuario:dashboard' %}">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'usuario:lista_usuarios' %}">
-                            <i class="fas fa-list me-2"></i>Lista de Usuarios
-                        </a>
-                    </li>
-                    {% if perms.usuario.add_usuario %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'usuario:crear_usuario' %}">
-                            <i class="fas fa-plus-circle me-2"></i>Crear Usuario
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
             </li>
+            
+            <!-- Lista de Usuarios -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'usuario:lista_usuarios' %}">
+                    <i class="fas fa-list me-2"></i>
+                    Lista de Usuarios
+                    {% if not perms.usuario.add_usuario and not perms.usuario.change_usuario %}
+                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <!-- Crear Usuario -->
+            {% if perms.usuario.add_usuario %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'usuario:crear_usuario' %}">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Crear Usuario
+                </a>
+            </li>
+            {% endif %}
             
             <!-- Configuración del Sistema - Solo Gerente -->
             {% if perms.core.change_configuracionsistema %}
@@ -149,6 +151,7 @@
             <span><i class="fas fa-tasks me-1"></i> Sistema de Asignaciones</span>
         </h6>
         <ul class="nav flex-column mb-2">
+            <!-- Dashboard Asignaciones -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'asignacion:dashboard' %}">
                     <i class="fas fa-tachometer-alt me-2"></i>
@@ -157,46 +160,46 @@
             </li>
             
             <!-- Asignaciones de Motos -->
-            {% if perms.asignacion.view_asignacionmoto %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'asignacion:listar_motos' %}">
+                    <i class="fas fa-motorcycle me-2"></i>
+                    Asignaciones de Motos
+                    {% if not perms.asignacion.add_asignacionmoto and not perms.asignacion.change_asignacionmoto %}
+                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <!-- Asignaciones de Farmacias -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'asignacion:listar_farmacias' %}">
+                    <i class="fas fa-clinic-medical me-2"></i>
+                    Asignaciones de Farmacias
+                    {% if not perms.asignacion.add_asignacionfarmacia and not perms.asignacion.change_asignacionfarmacia %}
+                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <!-- Crear Asignaciones -->
+            {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-motorcycle me-2"></i>
-                    Asignaciones Motos
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Crear Asignación
                 </a>
                 <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'asignacion:listar_motos' %}">
-                            <i class="fas fa-list me-2"></i>Lista Asignaciones
-                        </a>
-                    </li>
                     {% if perms.asignacion.add_asignacionmoto %}
                     <li>
                         <a class="dropdown-item" href="{% url 'asignacion:crear_moto' %}">
-                            <i class="fas fa-plus-circle me-2"></i>Crear Asignación
+                            <i class="fas fa-motorcycle me-2"></i> Asignación de Moto
                         </a>
                     </li>
                     {% endif %}
-                </ul>
-            </li>
-            {% endif %}
-            
-            <!-- Asignaciones de Farmacias -->
-            {% if perms.asignacion.view_asignacionfarmacia %}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-clinic-medical me-2"></i>
-                    Asignaciones Farmacias
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'asignacion:listar_farmacias' %}">
-                            <i class="fas fa-list me-2"></i>Lista Asignaciones
-                        </a>
-                    </li>
                     {% if perms.asignacion.add_asignacionfarmacia %}
                     <li>
                         <a class="dropdown-item" href="{% url 'asignacion:crear_farmacia' %}">
-                            <i class="fas fa-plus-circle me-2"></i>Crear Asignación
+                            <i class="fas fa-clinic-medical me-2"></i> Asignación de Farmacia
                         </a>
                     </li>
                     {% endif %}
@@ -510,6 +513,19 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+/* Estilos específicos para el módulo de asignaciones */
+.sidebar .nav-link i.fa-tasks {
+    color: #6f42c1;
+}
+
+.sidebar .nav-link:hover i.fa-tasks {
+    color: #007bff;
+}
+
+.sidebar .nav-link.active i.fa-tasks {
+    color: #007bff;
+}
 </style>
 
 <script>
@@ -541,6 +557,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
             dropdownToggle.classList.add('active');
         }
+    });
+
+    // Mejorar la experiencia del módulo de asignaciones
+    const asignacionLinks = document.querySelectorAll('#sidebar a[href*="asignacion"]');
+    asignacionLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            // Remover activo de todos los enlaces de asignación
+            asignacionLinks.forEach(l => l.classList.remove('active'));
+            // Agregar activo al enlace clickeado
+            this.classList.add('active');
+        });
     });
 });
 </script>
