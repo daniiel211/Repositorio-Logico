@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'movimiento:dashboard' %}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Complete los datos de la orden de despacho
+                {% if tipo_movimiento %}
+                <span class="badge bg-info">Para: {{ tipo_movimiento|capfirst }}</span>
+                {% endif %}
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Orden
+                    </button>
+                    
+                    {% if tipo_movimiento %}
+                    <a href="{% url 'movimiento:seleccionar_orden' tipo_movimiento %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Selección
+                    </a>
+                    {% else %}
+                    <a href="{% url 'movimiento:orden_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

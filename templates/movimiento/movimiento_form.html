@@ -1,7 +1,21 @@
 {% extends 'core/base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+    .loading {
+        display: none;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -21,12 +35,202 @@
             </h6>
         </div>
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" id="movimientoForm">
                 {% csrf_token %}
-                {{ form|crispy }}
-                <button type="submit" class="btn btn-primary mt-3">Guardar Movimiento</button>
+                
+                <!-- Información de la Orden de Despacho -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">Información de la Orden de Despacho</h5>
+                        <div class="form-group">
+                            {{ form.orden_despacho|as_crispy_field }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del Movimiento -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="text-primary">Información del Movimiento</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.idFarmaciaOrigen|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form.rutMotorista|as_crispy_field }}
+                            <div id="loadingMotoristas" class="loading">
+                                <small>Cargando motoristas disponibles...</small>
+                            </div>
+                            <div id="sinMotoristas" class="text-warning" style="display: none;">
+                                <small>No hay motoristas asignados a esta farmacia</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campos específicos del tipo de movimiento -->
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.producto|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.cantidad|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.prioridad|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Campos adicionales según el tipo de movimiento -->
+                {% if tipo_movimiento == 'Directo' or tipo_movimiento == 'Receta' %}
+                <div class="row">
+                    <div class="col-md-8">
+                        {{ form.direccionEntrega|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.comunaEntrega|as_crispy_field }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if tipo_movimiento == 'Receta' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.archivoReceta|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.requiereRetiroReceta|as_crispy_field }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if tipo_movimiento == 'Traslado' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.idFarmaciaDestino|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.motivoTraslado|as_crispy_field }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Campos comunes -->
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form.clienteNombre|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.clienteTelefono|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ form.metodoPago|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.monto|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Espacio para campos adicionales -->
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        {{ form.observaciones|as_crispy_field }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3" id="submitBtn">
+                    <i class="fas fa-save"></i> Guardar Movimiento
+                </button>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para filtrar motoristas según la farmacia seleccionada
+function filtrarMotoristas(farmaciaId) {
+    const motoristaSelect = document.getElementById('id_rutMotorista');
+    const loadingDiv = document.getElementById('loadingMotoristas');
+    const sinMotoristasDiv = document.getElementById('sinMotoristas');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (!farmaciaId) {
+        motoristaSelect.innerHTML = '<option value="">Seleccione una farmacia primero</option>';
+        sinMotoristasDiv.style.display = 'none';
+        return;
+    }
+
+    // Mostrar loading
+    loadingDiv.style.display = 'block';
+    sinMotoristasDiv.style.display = 'none';
+    motoristaSelect.disabled = true;
+    submitBtn.disabled = true;
+
+    // Hacer petición AJAX para obtener motoristas
+    fetch(`/movimiento/api/motoristas-por-farmacia/${farmaciaId}/`)
+        .then(response => response.json())
+        .then(data => {
+            motoristaSelect.innerHTML = '';
+            
+            if (data.motoristas && data.motoristas.length > 0) {
+                // Agregar opción por defecto
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Seleccione un motorista';
+                motoristaSelect.appendChild(defaultOption);
+                
+                // Agregar motoristas
+                data.motoristas.forEach(motorista => {
+                    const option = document.createElement('option');
+                    option.value = motorista.id;
+                    option.textContent = `${motorista.nombre_completo} (${motorista.rut})`;
+                    motoristaSelect.appendChild(option);
+                });
+                sinMotoristasDiv.style.display = 'none';
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No hay motoristas disponibles';
+                motoristaSelect.appendChild(option);
+                sinMotoristasDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            motoristaSelect.innerHTML = '<option value="">Error al cargar motoristas</option>';
+        })
+        .finally(() => {
+            loadingDiv.style.display = 'none';
+            motoristaSelect.disabled = false;
+            submitBtn.disabled = false;
+        });
+}
+
+// Event listener para cambios en la farmacia
+document.addEventListener('DOMContentLoaded', function() {
+    const farmaciaSelect = document.querySelector('#id_idFarmaciaOrigen');
+    
+    if (farmaciaSelect) {
+        // Filtrar motoristas al cargar la página si ya hay una farmacia seleccionada
+        if (farmaciaSelect.value) {
+            filtrarMotoristas(farmaciaSelect.value);
+        }
+        
+        // Filtrar motoristas cuando cambia la farmacia
+        farmaciaSelect.addEventListener('change', function() {
+            filtrarMotoristas(this.value);
+        });
+    }
+});
+</script>
 {% endblock %}

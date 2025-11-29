@@ -1,6 +1,6 @@
 """
 Script para crear usuarios, grupos y asignar permisos en el sistema LogiCo
-INCLUYE PERMISOS PARA APLICACIONES: USUARIO, FARMACIA, MOTO, MOTORISTA Y ASIGNACION
+INCLUYE PERMISOS PARA APLICACIONES: USUARIO, FARMACIA, MOTO, MOTORISTA, ASIGNACION Y MOVIMIENTO
 Ejecutar: python manage.py shell < crear_usuarios_roles.py
 """
 
@@ -42,6 +42,14 @@ def crear_grupos_y_permisos():
         # Asignación (acceso completo)
         'add_asignacionmoto', 'change_asignacionmoto', 'delete_asignacionmoto', 'view_asignacionmoto',
         'add_asignacionfarmacia', 'change_asignacionfarmacia', 'delete_asignacionfarmacia', 'view_asignacionfarmacia',
+        # Movimiento (acceso completo)
+        'add_movimiento', 'change_movimiento', 'delete_movimiento', 'view_movimiento',
+        'add_movimientodirecto', 'change_movimientodirecto', 'delete_movimientodirecto', 'view_movimientodirecto',
+        'add_movimientoreceta', 'change_movimientoreceta', 'delete_movimientoreceta', 'view_movimientoreceta',
+        'add_movimientotraslado', 'change_movimientotraslado', 'delete_movimientotraslado', 'view_movimientotraslado',
+        'add_movimientoreenvio', 'change_movimientoreenvio', 'delete_movimientoreenvio', 'view_movimientoreenvio',
+        'add_bitacoramovimiento', 'change_bitacoramovimiento', 'delete_bitacoramovimiento', 'view_bitacoramovimiento',
+        'add_ordendespacho', 'change_ordendespacho', 'delete_ordendespacho', 'view_ordendespacho',
         # Core (acceso completo)
         'view_dashboard', 'view_estadisticas', 'change_configuracionsistema',
     ]
@@ -74,6 +82,14 @@ def crear_grupos_y_permisos():
         # Asignación (ver y editar)
         'add_asignacionmoto', 'change_asignacionmoto', 'view_asignacionmoto',
         'add_asignacionfarmacia', 'change_asignacionfarmacia', 'view_asignacionfarmacia',
+        # Movimiento (ver y editar)
+        'add_movimiento', 'change_movimiento', 'view_movimiento',
+        'add_movimientodirecto', 'change_movimientodirecto', 'view_movimientodirecto',
+        'add_movimientoreceta', 'change_movimientoreceta', 'view_movimientoreceta',
+        'add_movimientotraslado', 'change_movimientotraslado', 'view_movimientotraslado',
+        'add_movimientoreenvio', 'change_movimientoreenvio', 'view_movimientoreenvio',
+        'view_bitacoramovimiento',
+        'add_ordendespacho', 'change_ordendespacho', 'view_ordendespacho',
         # Core (vista limitada)
         'view_dashboard', 'view_estadisticas',
     ]
@@ -104,6 +120,14 @@ def crear_grupos_y_permisos():
         'view_motorista',
         # Asignación (solo ver)
         'view_asignacionmoto', 'view_asignacionfarmacia',
+        # Movimiento (solo ver y crear)
+        'view_movimiento', 'add_movimiento',
+        'view_movimientodirecto', 'add_movimientodirecto',
+        'view_movimientoreceta', 'add_movimientoreceta',
+        'view_movimientotraslado', 'add_movimientotraslado',
+        'view_movimientoreenvio', 'add_movimientoreenvio',
+        'view_bitacoramovimiento',
+        'view_ordendespacho', 'add_ordendespacho',
         # Core (solo dashboard)
         'view_dashboard',
     ]
@@ -134,6 +158,12 @@ def crear_grupos_y_permisos():
         'view_motorista',
         # Asignación (solo ver propias asignaciones)
         'view_asignacionmoto', 'view_asignacionfarmacia',
+        # Movimiento (solo ver propios movimientos)
+        'view_movimiento', 'change_movimiento',
+        'view_movimientodirecto', 'view_movimientoreceta',
+        'view_movimientotraslado', 'view_movimientoreenvio',
+        'view_bitacoramovimiento',
+        'view_ordendespacho',
         # Core (solo dashboard básico)
         'view_dashboard',
     ]
@@ -325,7 +355,7 @@ def verificar_creacion():
         print(f"- {grupo.name}: {permisos.count()} permisos")
         
         # Mostrar permisos por aplicación
-        for app_label in ['usuario', 'farmacia', 'moto', 'motorista', 'asignacion', 'core']:
+        for app_label in ['usuario', 'farmacia', 'moto', 'motorista', 'asignacion', 'movimiento', 'core']:
             permisos_app = permisos.filter(content_type__app_label=app_label)
             if permisos_app:
                 print(f"  {app_label.capitalize()}: {permisos_app.count()} permisos")
@@ -378,7 +408,7 @@ def mostrar_resumen_permisos():
 
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
-    print("INCLUYENDO PERMISOS DE: USUARIO, FARMACIA, MOTO, MOTORISTA Y ASIGNACION")
+    print("INCLUYENDO PERMISOS DE: USUARIO, FARMACIA, MOTO, MOTORISTA, ASIGNACION Y MOVIMIENTO")
     print("=" * 80)
     
     try:
@@ -427,65 +457,49 @@ if __name__ == "__main__":
         print("    👤 Usuario: motorista.logico")
         print("    🔑 Password: LogicoMotorista.2025")
         
-        print("\n📋 PERMISOS POR ROL - ASIGNACIONES:")
+        print("\n📋 PERMISOS POR ROL - MOVIMIENTOS:")
         print("  🎯 Gerente:")
-        print("    ✅ Crear asignaciones: PERMITIDO")
-        print("    ✅ Editar asignaciones: PERMITIDO") 
-        print("    ✅ Eliminar asignaciones: PERMITIDO")
-        print("    ✅ Ver asignaciones: PERMITIDO")
-        print("    ✅ Reemplazar motoristas: PERMITIDO")
+        print("    ✅ Crear movimientos: PERMITIDO")
+        print("    ✅ Editar movimientos: PERMITIDO") 
+        print("    ✅ Eliminar movimientos: PERMITIDO")
+        print("    ✅ Ver movimientos: PERMITIDO")
+        print("    ✅ Cambiar estado: PERMITIDO")
+        print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  📊 Supervisor:")
-        print("    ✅ Crear asignaciones: PERMITIDO")
-        print("    ✅ Editar asignaciones: PERMITIDO")
-        print("    ❌ Eliminar asignaciones: DENEGADO") 
-        print("    ✅ Ver asignaciones: PERMITIDO")
-        print("    ✅ Reemplazar motoristas: PERMITIDO")
+        print("    ✅ Crear movimientos: PERMITIDO")
+        print("    ✅ Editar movimientos: PERMITIDO")
+        print("    ❌ Eliminar movimientos: DENEGADO") 
+        print("    ✅ Ver movimientos: PERMITIDO")
+        print("    ✅ Cambiar estado: PERMITIDO")
+        print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  ⚙️  Operador:")
-        print("    ❌ Crear asignaciones: DENEGADO")
-        print("    ❌ Editar asignaciones: DENEGADO")
-        print("    ❌ Eliminar asignaciones: DENEGADO")
-        print("    ✅ Ver asignaciones: PERMITIDO")
-        print("    ❌ Reemplazar motoristas: DENEGADO")
+        print("    ✅ Crear movimientos: PERMITIDO")
+        print("    ❌ Editar movimientos: DENEGADO")
+        print("    ❌ Eliminar movimientos: DENEGADO")
+        print("    ✅ Ver movimientos: PERMITIDO")
+        print("    ❌ Cambiar estado: DENEGADO")
+        print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  🛵 Motorista:")
-        print("    ❌ Crear asignaciones: DENEGADO")
-        print("    ❌ Editar asignaciones: DENEGADO")
-        print("    ❌ Eliminar asignaciones: DENEGADO")
-        print("    👁️  Ver asignaciones: SOLO PROPIAS")
-        print("    ❌ Reemplazar motoristas: DENEGADO")
+        print("    ❌ Crear movimientos: DENEGADO")
+        print("    ✅ Editar movimientos: SOLO ESTADO")
+        print("    ❌ Eliminar movimientos: DENEGADO")
+        print("    👁️  Ver movimientos: SOLO PROPIOS")
+        print("    ✅ Cambiar estado: SOLO PROPIOS")
+        print("    ❌ Crear órdenes: DENEGADO")
+        print("    ✅ Ver bitácora: SOLO PROPIOS")
         
-        print("\n🔒 PERMISOS POR ROL - USUARIOS:")
-        print("  🎯 Gerente:")
-        print("    ✅ Crear usuarios: PERMITIDO")
-        print("    ✅ Editar usuarios: PERMITIDO") 
-        print("    ✅ Eliminar usuarios: PERMITIDO")
-        print("    ✅ Ver usuarios: PERMITIDO")
-        
-        print("  📊 Supervisor:")
-        print("    ❌ Crear usuarios: DENEGADO")
-        print("    ✅ Editar usuarios: PERMITIDO")
-        print("    ❌ Eliminar usuarios: DENEGADO") 
-        print("    ✅ Ver usuarios: PERMITIDO")
-        
-        print("  ⚙️  Operador:")
-        print("    ❌ Crear usuarios: DENEGADO")
-        print("    ❌ Editar usuarios: DENEGADO")
-        print("    ❌ Eliminar usuarios: DENEGADO")
-        print("    ✅ Ver usuarios: PERMITIDO")
-        
-        print("  🛵 Motorista:")
-        print("    ❌ Crear usuarios: DENEGADO")
-        print("    ❌ Editar usuarios: DENEGADO")
-        print("    ❌ Eliminar usuarios: DENEGADO")
-        print("    👁️  Ver usuarios: SOLO PROPIO PERFIL")
-        
-        print("\n💡 NOTA IMPORTANTE:")
-        print("  • Los permisos se aplican automáticamente al sistema de control de acceso.")
-        print("  • Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")
-        print("  • El middleware de seguridad bloquea accesos no autorizados.")
-        print("  • Los motoristas solo pueden ver sus propias asignaciones y perfil.")
+        print("\n💡 CARACTERÍSTICAS DEL SISTEMA DE MOVIMIENTOS:")
+        print("  • Órdenes de despacho obligatorias para cada movimiento")
+        print("  • Filtro automático de motoristas por farmacia seleccionada")
+        print("  • Validación en tiempo real de datos entre órdenes y movimientos")
+        print("  • Sistema de bitácora para seguimiento de cambios")
+        print("  • Reenvíos automáticos con mantenimiento de relación con orden original")
         
     except Exception as e:
         print(f"❌ ERROR: {e}")

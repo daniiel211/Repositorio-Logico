@@ -7,6 +7,7 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 text-gray-800">{{ titulo }}</h1>
+        {% if perms.movimiento.add_movimiento %}
         <div class="btn-group" role="group" aria-label="Acciones de Movimiento">
             <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-plus"></i> Nuevo Movimiento
@@ -19,6 +20,7 @@
                 <a class="dropdown-item" href="{% url 'movimiento:crear' 'reenvio' %}"><i class="fas fa-redo fa-fw mr-2 text-gray-400"></i>Reenvío</a>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Estadísticas -->

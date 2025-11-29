@@ -87,7 +87,7 @@
                                     <a href="{% url 'movimiento:detail' movimiento.pk %}" class="btn btn-info btn-sm" title="Ver Detalle">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' %}
+                                    {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' and perms.movimiento.change_movimiento %}
                                     <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#changeStateModal-{{ movimiento.pk }}" title="Cambiar Estado">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -109,6 +109,7 @@
 
                 <!-- Modales para Cambio de Estado -->
                 {% for movimiento in movimientos %}
+                {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' and perms.movimiento.change_movimiento %}
                 <div class="modal fade" id="changeStateModal-{{ movimiento.pk }}" tabindex="-1" aria-labelledby="changeStateModalLabel-{{ movimiento.pk }}" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -130,6 +131,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
 

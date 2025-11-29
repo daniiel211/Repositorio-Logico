@@ -94,24 +94,24 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
 
-        <!-- Cambiar Estado (si no es estado final) -->
-        {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' %}
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Actualizar Estado del Movimiento</h6>
+            <!-- Cambiar Estado (si no es estado final y tiene permisos) -->
+            {% if movimiento.estado != 'entregado' and movimiento.estado != 'anulado' and perms.movimiento.change_movimiento %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Actualizar Estado del Movimiento</h6>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'movimiento:cambiar_estado' movimiento.pk %}" method="post">
+                        {% load crispy_forms_tags %}
+                        {% csrf_token %}
+                        {{ estado_form|crispy }}
+                        <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Guardar Nuevo Estado</button>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <form action="{% url 'movimiento:cambiar_estado' movimiento.pk %}" method="post">
-                    {% load crispy_forms_tags %}
-                    {% csrf_token %}
-                    {{ estado_form|crispy }}
-                    <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save"></i> Guardar Nuevo Estado</button>
-                </form>
-            </div>
+            {% endif %}
         </div>
-        {% endif %}
 
         <!-- Columna Derecha: Bitácora -->
         <div class="col-lg-4">

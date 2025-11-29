@@ -1,0 +1,170 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'movimiento:orden_list' %}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Listado
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Información de la Orden -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Información de la Orden</h6>
+                    <span class="badge rounded-pill bg-{% if orden.estado == 'completado' %}success{% elif orden.estado == 'pendiente' %}warning text-dark{% elif orden.estado == 'fallido' or orden.estado == 'cancelado' %}danger{% else %}info{% endif %}">
+                        {{ orden.get_estado_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Número de Orden:</strong> {{ orden.numero_orden }}</p>
+                    {% if orden.id_compra_online %}
+                    <p><strong>ID Compra Online:</strong> {{ orden.id_compra_online }}</p>
+                    {% endif %}
+                    <p><strong>Cliente:</strong> {{ orden.cliente_nombre }}</p>
+                    <p><strong>Teléfono:</strong> {{ orden.cliente_telefono }}</p>
+                    {% if orden.cliente_email %}
+                    <p><strong>Email:</strong> {{ orden.cliente_email }}</p>
+                    {% endif %}
+                    <p><strong>Dirección:</strong> {{ orden.direccion_entrega }}</p>
+                    <p><strong>Comuna:</strong> {{ orden.comuna_entrega }}</p>
+                    <p><strong>Método de Pago:</strong> {{ orden.get_metodo_pago_display }}</p>
+                    <p><strong>Monto Total:</strong> ${{ orden.monto_total }}</p>
+                    <p><strong>Fecha Creación:</strong> {{ orden.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    {% if orden.observaciones %}
+                    <p><strong>Observaciones:</strong> {{ orden.observaciones }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Progreso y Estadísticas -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Progreso de la Orden</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="small font-weight-bold">
+                        Completado 
+                        <span class="float-right">{{ orden.movimientos_entregados }}/{{ orden.movimientos_totales }}</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ orden.porcentaje_completado }}%" 
+                             aria-valuenow="{{ orden.porcentaje_completado }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                            {{ orden.porcentaje_completado|floatformat:0 }}%
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="border-left-primary shadow h-100 py-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Movimientos
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ orden.movimientos_totales }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-left-success shadow h-100 py-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Entregados
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ orden.movimientos_entregados }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="border-left-warning shadow h-100 py-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Pendientes
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ orden.movimientos_totales|add:-orden.movimientos_entregados }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movimientos de la Orden -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Movimientos Relacionados</h6>
+            {% if perms.movimiento.add_movimiento %}
+            <div class="btn-group">
+                <a href="{% url 'movimiento:crear' 'directo' %}?orden={{ orden.pk }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Agregar Movimiento
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if orden.movimientos.all %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>ID Movimiento</th>
+                            <th>Tipo</th>
+                            <th>Motorista</th>
+                            <th>Farmacia Origen</th>
+                            <th>Producto</th>
+                            <th>Estado</th>
+                            <th>Fecha Creación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movimiento in orden.movimientos.all %}
+                        <tr>
+                            <td>{{ movimiento.idMovimiento }}</td>
+                            <td>{{ movimiento.get_tipoMovimiento_display }}</td>
+                            <td>{{ movimiento.rutMotorista.nombre_completo|default:"N/A" }}</td>
+                            <td>{{ movimiento.idFarmaciaOrigen.nombre|default:"N/A" }}</td>
+                            <td>{{ movimiento.producto|truncatechars:30 }}</td>
+                            <td>
+                                <span class="badge rounded-pill bg-{% if movimiento.estado == 'entregado' %}success{% elif movimiento.estado == 'pendiente' %}warning text-dark{% elif movimiento.estado == 'fallido' or movimiento.estado == 'anulado' %}danger{% else %}info{% endif %}">
+                                    {{ movimiento.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ movimiento.fechaCreacion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'movimiento:detail' movimiento.pk %}" class="btn btn-info btn-sm" title="Ver Detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if movimiento.estado == 'fallido' and perms.movimiento.add_movimiento %}
+                                    <a href="{% url 'movimiento:reenvio_rapido' movimiento.pk %}" class="btn btn-warning btn-sm" title="Crear Reenvío">
+                                        <i class="fas fa-redo"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted">No hay movimientos asociados a esta orden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'movimiento:dashboard' %}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <!-- Seleccionar Orden Existente -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Usar Orden Existente</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="seleccionar_existente">
+                        
+                        <div class="form-group">
+                            <label for="orden_existente">Seleccionar Orden Activa:</label>
+                            <select name="orden_existente" id="orden_existente" class="form-control" required>
+                                <option value="">-- Seleccione una orden --</option>
+                                {% for orden in ordenes_activas %}
+                                <option value="{{ orden.idOrden }}">
+                                    #{{ orden.numero_orden }} - {{ orden.cliente_nombre }} - {{ orden.get_estado_display }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Usar esta Orden
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <!-- Crear Nueva Orden -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Crear Nueva Orden</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="crear_nueva">
+                        
+                        <p>¿No tiene una orden activa disponible?</p>
+                        <p class="text-muted">Cree una nueva orden de despacho para continuar con el movimiento.</p>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Crear Nueva Orden
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información del Movimiento -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Información</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Tipo de Movimiento:</strong> {{ tipo_movimiento|capfirst }}</p>
+                    <p class="text-muted small">
+                        Cada movimiento debe estar asociado a una orden de despacho. 
+                        Puede usar una orden existente o crear una nueva.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

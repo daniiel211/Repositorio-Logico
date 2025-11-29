@@ -1,39 +1,48 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.utils import timezone
-from .models import Movimiento, BitacoraMovimiento
+from django.http import JsonResponse
+from .models import OrdenDespacho, Movimiento, BitacoraMovimiento
 from .forms import (
-    MovimientoDirectoForm,
-    MovimientoRecetaForm,
-    MovimientoTrasladoForm,
-    MovimientoReenvioForm,
-    CambiarEstadoMovimientoForm,
+    OrdenDespachoForm, MovimientoDirectoForm, MovimientoRecetaForm,
+    MovimientoTrasladoForm, MovimientoReenvioForm, CambiarEstadoMovimientoForm,
+    ReenvioRapidoForm
 )
+from apps.asignacion.models import AsignacionFarmacia
+from apps.motorista.models import Motorista
 
 
 @login_required
+@permission_required('movimiento.view_movimiento', raise_exception=True)
 def dashboard_movimientos(request):
     """
     Dashboard para la gestión de movimientos. Muestra estadísticas clave.
     """
-    total_movimientos = Movimiento.objects.count()
-    
-    # Obtener conteo de movimientos por estado
-    movimientos_por_estado_raw = Movimiento.objects.values('estado').annotate(total=Count('estado')).order_by('-total')
+    # Si es motorista, solo muestra sus movimientos
+    if hasattr(request.user, 'es_motorista') and request.user.es_motorista:
+        total_movimientos = Movimiento.objects.filter(rutMotorista=request.user.motorista).count()
+        movimientos_por_estado_raw = Movimiento.objects.filter(
+            rutMotorista=request.user.motorista
+        ).values('estado').annotate(total=Count('estado')).order_by('-total')
+        ultimos_movimientos = Movimiento.objects.filter(
+            rutMotorista=request.user.motorista
+        ).select_related('rutMotorista', 'idFarmaciaOrigen').order_by('-fechaCreacion')[:10]
+    else:
+        total_movimientos = Movimiento.objects.count()
+        movimientos_por_estado_raw = Movimiento.objects.values('estado').annotate(total=Count('estado')).order_by('-total')
+        ultimos_movimientos = Movimiento.objects.select_related(
+            'rutMotorista', 'idFarmaciaOrigen'
+        ).order_by('-fechaCreacion')[:10]
     
     # Formatear los nombres de los estados para la plantilla
     movimientos_por_estado = [
         {'estado': item['estado'], 'total': item['total'], 'nombre_display': item['estado'].replace('_', ' ').capitalize()}
         for item in movimientos_por_estado_raw
     ]
-    
-    ultimos_movimientos = Movimiento.objects.select_related(
-        'rutMotorista', 'idFarmaciaOrigen'
-    ).order_by('-fechaCreacion')[:10]
 
     context = {
         'titulo': 'Dashboard de Movimientos',
@@ -42,6 +51,31 @@ def dashboard_movimientos(request):
         'ultimos_movimientos': ultimos_movimientos,
     }
     return render(request, 'movimiento/dashboard.html', context)
+
+
+@login_required
+@permission_required('movimiento.view_ordendespacho', raise_exception=True)
+def dashboard_ordenes(request):
+    """
+    Dashboard para la gestión de órdenes de despacho.
+    """
+    total_ordenes = OrdenDespacho.objects.filter(activo=True).count()
+    
+    # Obtener conteo de órdenes por estado
+    ordenes_por_estado = OrdenDespacho.objects.filter(activo=True).values(
+        'estado'
+    ).annotate(total=Count('estado')).order_by('-total')
+    
+    # Órdenes recientes
+    ultimas_ordenes = OrdenDespacho.objects.filter(activo=True).select_related().prefetch_related('movimientos').order_by('-fecha_creacion')[:10]
+
+    context = {
+        'titulo': 'Dashboard de Órdenes de Despacho',
+        'total_ordenes': total_ordenes,
+        'ordenes_por_estado': ordenes_por_estado,
+        'ultimas_ordenes': ultimas_ordenes,
+    }
+    return render(request, 'movimiento/dashboard_ordenes.html', context)
 
 
 class MovimientoListView(LoginRequiredMixin, ListView):
@@ -54,9 +88,15 @@ class MovimientoListView(LoginRequiredMixin, ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        queryset = Movimiento.objects.select_related(
-            'rutMotorista', 'idFarmaciaOrigen'
-        ).order_by('-fechaCreacion')
+        # Si es motorista, solo muestra sus movimientos
+        if hasattr(self.request.user, 'es_motorista') and self.request.user.es_motorista:
+            queryset = Movimiento.objects.filter(
+                rutMotorista=self.request.user.motorista
+            ).select_related('rutMotorista', 'idFarmaciaOrigen', 'orden_despacho').order_by('-fechaCreacion')
+        else:
+            queryset = Movimiento.objects.select_related(
+                'rutMotorista', 'idFarmaciaOrigen', 'orden_despacho'
+            ).order_by('-fechaCreacion')
 
         # Búsqueda general
         search_query = self.request.GET.get('q', '')
@@ -65,7 +105,8 @@ class MovimientoListView(LoginRequiredMixin, ListView):
                 Q(idMovimiento__icontains=search_query) |
                 Q(rutMotorista__nombre_completo__icontains=search_query) |
                 Q(idFarmaciaOrigen__nombre__icontains=search_query) |
-                Q(clienteNombre__icontains=search_query)
+                Q(clienteNombre__icontains=search_query) |
+                Q(orden_despacho__numero_orden__icontains=search_query)
             )
 
         # Filtro por tipo
@@ -78,6 +119,11 @@ class MovimientoListView(LoginRequiredMixin, ListView):
         if estado:
             queryset = queryset.filter(estado=estado)
 
+        # Filtro por orden de despacho
+        orden = self.request.GET.get('orden', '')
+        if orden:
+            queryset = queryset.filter(orden_despacho__numero_orden__icontains=orden)
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -86,6 +132,7 @@ class MovimientoListView(LoginRequiredMixin, ListView):
         context['search_query'] = self.request.GET.get('q', '')
         context['tipo_filtro'] = self.request.GET.get('tipo', '')
         context['estado_filtro'] = self.request.GET.get('estado', '')
+        context['orden_filtro'] = self.request.GET.get('orden', '')
         context['tipos_movimiento'] = Movimiento.TIPO_MOVIMIENTO_CHOICES
         context['estados_movimiento'] = Movimiento.ESTADO_CHOICES
         # Añadir una instancia del formulario de cambio de estado para usar en los modales
@@ -93,21 +140,102 @@ class MovimientoListView(LoginRequiredMixin, ListView):
         return context
 
 
+class OrdenDespachoListView(LoginRequiredMixin, ListView):
+    """
+    Vista para listar todas las órdenes de despacho.
+    """
+    model = OrdenDespacho
+    template_name = 'movimiento/ordendespacho_list.html'
+    context_object_name = 'ordenes'
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = OrdenDespacho.objects.filter(activo=True).prefetch_related(
+            'movimientos'
+        ).order_by('-fecha_creacion')
+
+        # Búsqueda general
+        search_query = self.request.GET.get('q', '')
+        if search_query:
+            queryset = queryset.filter(
+                Q(numero_orden__icontains=search_query) |
+                Q(cliente_nombre__icontains=search_query) |
+                Q(cliente_telefono__icontains=search_query) |
+                Q(id_compra_online__icontains=search_query)
+            )
+
+        # Filtro por estado
+        estado = self.request.GET.get('estado', '')
+        if estado:
+            queryset = queryset.filter(estado=estado)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Listado de Órdenes de Despacho'
+        context['search_query'] = self.request.GET.get('q', '')
+        context['estado_filtro'] = self.request.GET.get('estado', '')
+        context['estados_orden'] = OrdenDespacho.ESTADO_CHOICES
+        return context
+
+
+class OrdenDespachoDetailView(LoginRequiredMixin, DetailView):
+    """
+    Vista para mostrar el detalle completo de una orden de despacho.
+    """
+    model = OrdenDespacho
+    template_name = 'movimiento/ordendespacho_detail.html'
+    context_object_name = 'orden'
+
+    def get_queryset(self):
+        return OrdenDespacho.objects.filter(activo=True).prefetch_related(
+            'movimientos',
+            'movimientos__rutMotorista',
+            'movimientos__idFarmaciaOrigen',
+            'movimientos__directo',
+            'movimientos__receta',
+            'movimientos__traslado',
+            'movimientos__reenvio'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = f'Detalle Orden #{self.object.numero_orden}'
+        return context
+
+
 @login_required
+@permission_required('movimiento.view_movimiento', raise_exception=True)
 def movimiento_detalle(request, pk):
     """
     Muestra el detalle completo de un movimiento, incluyendo su tipo específico
     y la bitácora de cambios.
     """
-    movimiento = get_object_or_404(Movimiento.objects.select_related(
-            'rutMotorista', 'idFarmaciaOrigen', 'idFarmaciaDestino', 'autorizadoPor',
-            'directo', 'receta', 'traslado', 'reenvio'
-        ).prefetch_related('bitacora__usuario'),
-        pk=pk
-    )
+    # Si es motorista, verifica que el movimiento le pertenezca
+    if hasattr(request.user, 'es_motorista') and request.user.es_motorista:
+        movimiento = get_object_or_404(
+            Movimiento.objects.select_related(
+                'rutMotorista', 'idFarmaciaOrigen', 'idFarmaciaDestino', 'autorizadoPor', 'orden_despacho',
+                'directo', 'receta', 'traslado', 'reenvio'
+            ).prefetch_related('bitacora__usuario'),
+            pk=pk,
+            rutMotorista=request.user.motorista
+        )
+    else:
+        movimiento = get_object_or_404(
+            Movimiento.objects.select_related(
+                'rutMotorista', 'idFarmaciaOrigen', 'idFarmaciaDestino', 'autorizadoPor', 'orden_despacho',
+                'directo', 'receta', 'traslado', 'reenvio'
+            ).prefetch_related('bitacora__usuario'),
+            pk=pk
+        )
 
     # Formulario para cambiar estado
-    estado_form = CambiarEstadoMovimientoForm(initial={'estado': movimiento.estado}, current_state=movimiento.estado)
+    estado_form = CambiarEstadoMovimientoForm(
+        initial={'estado': movimiento.estado}, 
+        current_state=movimiento.estado
+    )
 
     context = {
         'titulo': f'Detalle Movimiento #{movimiento.idMovimiento}',
@@ -117,12 +245,20 @@ def movimiento_detalle(request, pk):
     return render(request, 'movimiento/movimiento_detail.html', context)
 
 
-# --- Vistas de Creación de Movimientos ---
-
 @login_required
+@permission_required('movimiento.change_movimiento', raise_exception=True)
 def cambiar_estado_movimiento(request, pk):
     """Procesa el cambio de estado de un movimiento."""
-    movimiento = get_object_or_404(Movimiento, pk=pk)
+    # Si es motorista, verifica que el movimiento le pertenezca
+    if hasattr(request.user, 'es_motorista') and request.user.es_motorista:
+        movimiento = get_object_or_404(
+            Movimiento, 
+            pk=pk, 
+            rutMotorista=request.user.motorista
+        )
+    else:
+        movimiento = get_object_or_404(Movimiento, pk=pk)
+        
     if request.method == 'POST':
         form = CambiarEstadoMovimientoForm(request.POST, current_state=movimiento.estado)
         if form.is_valid():
@@ -144,7 +280,10 @@ def cambiar_estado_movimiento(request, pk):
                 observaciones=form.cleaned_data['observaciones']
             )
             
-            messages.success(request, f"El estado del movimiento #{movimiento.idMovimiento} ha sido actualizado a '{movimiento.get_estado_display()}'.")
+            messages.success(
+                request, 
+                f"El estado del movimiento #{movimiento.idMovimiento} ha sido actualizado a '{movimiento.get_estado_display()}'."
+            )
         else:
             messages.error(request, "Hubo un error al cambiar el estado. Por favor, inténtelo de nuevo.")
     
@@ -152,10 +291,34 @@ def cambiar_estado_movimiento(request, pk):
 
 
 @login_required
-def crear_movimiento(request, tipo):
+@permission_required('movimiento.add_ordendespacho', raise_exception=True)
+def crear_orden_despacho(request):
     """
-    Vista genérica para crear movimientos.
-    El 'tipo' se pasa por la URL ('directo', 'receta', 'traslado', 'reenvio').
+    Vista para crear una nueva orden de despacho.
+    """
+    if request.method == 'POST':
+        form = OrdenDespachoForm(request.POST)
+        if form.is_valid():
+            orden = form.save()
+            messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
+            return redirect('movimiento:orden_detalle', pk=orden.pk)
+        else:
+            messages.error(request, 'Por favor, corrija los errores en el formulario.')
+    else:
+        form = OrdenDespachoForm()
+
+    context = {
+        'form': form,
+        'titulo': 'Crear Orden de Despacho'
+    }
+    return render(request, 'movimiento/ordendespacho_form.html', context)
+
+
+@login_required
+@permission_required('movimiento.add_movimiento', raise_exception=True)
+def crear_movimiento_con_orden(request, tipo, orden_id):
+    """
+    Vista para crear movimientos con una orden específica pre-seleccionada.
     """
     form_map = {
         'directo': (MovimientoDirectoForm, 'Crear Movimiento Directo'),
@@ -170,21 +333,209 @@ def crear_movimiento(request, tipo):
         messages.error(request, "Tipo de movimiento no válido.")
         return redirect('movimiento:dashboard')
 
+    try:
+        orden_despacho = OrdenDespacho.objects.get(pk=orden_id, activo=True)
+    except OrdenDespacho.DoesNotExist:
+        messages.warning(request, "La orden de despacho especificada no existe.")
+        return redirect('movimiento:seleccionar_orden', tipo=tipo)
+
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES)
         if form.is_valid():
-            # Pasamos el usuario para que el formulario lo asigne
-            form.save(autor=request.user)
-            messages.success(request, f'{titulo.replace("Crear ", "")} creado exitosamente.')
-            return redirect('movimiento:list')
+            movimiento = form.save(autor=request.user)
+            
+            messages.success(
+                request, 
+                f'{titulo.replace("Crear ", "")} creado exitosamente. '
+                f'Movimiento #{movimiento.idMovimiento} vinculado a la orden #{movimiento.orden_despacho.numero_orden}.'
+            )
+                
+            return redirect('movimiento:detail', pk=movimiento.pk)
         else:
             messages.error(request, 'Por favor, corrija los errores en el formulario.')
     else:
-        form = form_class()
+        # Pre-seleccionar la orden
+        initial_data = {'orden_despacho': orden_despacho}
+        form = form_class(initial=initial_data)
 
     context = {
         'form': form,
         'titulo': titulo,
-        'tipo_movimiento': tipo.capitalize()
+        'tipo_movimiento': tipo.capitalize(),
+        'orden_despacho': orden_despacho
     }
     return render(request, 'movimiento/movimiento_form.html', context)
+
+
+@login_required
+@permission_required('movimiento.add_movimiento', raise_exception=True)
+def crear_movimiento(request, tipo):
+    """
+    Vista genérica para crear movimientos - MODIFICADA para redirigir a selección de orden
+    """
+    # Redirigir a selección de orden
+    return redirect('movimiento:seleccionar_orden', tipo=tipo)
+
+
+@login_required
+@permission_required('movimiento.add_movimiento', raise_exception=True)
+def seleccionar_orden_movimiento(request, tipo):
+    """
+    Vista para seleccionar una orden existente o crear una nueva
+    """
+    ordenes_activas = OrdenDespacho.objects.filter(
+        activo=True, 
+        estado__in=['pendiente', 'en_proceso']
+    ).order_by('-fecha_creacion')[:10]  # Últimas 10 órdenes activas
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        
+        if accion == 'seleccionar_existente':
+            orden_id = request.POST.get('orden_existente')
+            if orden_id:
+                return redirect('movimiento:crear_con_orden', tipo=tipo, orden_id=orden_id)
+            else:
+                messages.error(request, 'Debe seleccionar una orden existente.')
+                
+        elif accion == 'crear_nueva':
+            return redirect('movimiento:crear_orden_para_movimiento', tipo=tipo)
+
+    context = {
+        'titulo': f'Seleccionar Orden - Movimiento {tipo.capitalize()}',
+        'tipo_movimiento': tipo,
+        'ordenes_activas': ordenes_activas,
+    }
+    return render(request, 'movimiento/seleccionar_orden.html', context)
+
+
+@login_required
+@permission_required('movimiento.add_ordendespacho', raise_exception=True)
+def crear_orden_para_movimiento(request, tipo):
+    """
+    Crear orden específicamente para un movimiento
+    """
+    if request.method == 'POST':
+        form = OrdenDespachoForm(request.POST)
+        if form.is_valid():
+            orden = form.save()
+            messages.success(request, f'Orden #{orden.numero_orden} creada exitosamente.')
+            
+            # Redirigir a crear movimiento con esta orden
+            return redirect('movimiento:crear_con_orden', tipo=tipo, orden_id=orden.pk)
+        else:
+            messages.error(request, 'Por favor, corrija los errores en el formulario.')
+    else:
+        form = OrdenDespachoForm()
+
+    context = {
+        'form': form,
+        'titulo': f'Crear Orden para Movimiento {tipo.capitalize()}',
+        'tipo_movimiento': tipo
+    }
+    return render(request, 'movimiento/ordendespacho_form.html', context)
+
+
+@login_required
+@permission_required('movimiento.change_movimiento', raise_exception=True)
+def crear_reenvio_rapido(request, pk):
+    """
+    Vista para crear reenvíos rápidos desde el detalle de un movimiento.
+    """
+    movimiento_original = get_object_or_404(Movimiento, pk=pk)
+    
+    if request.method == 'POST':
+        form = ReenvioRapidoForm(request.POST, movimiento_original=movimiento_original)
+        if form.is_valid():
+            try:
+                nuevo_movimiento = movimiento_original.crear_reenvio(
+                    motivo=form.cleaned_data['motivoReenvio'],
+                    nueva_direccion=form.cleaned_data['nuevaDireccion'],
+                    nueva_fecha=form.cleaned_data['nuevaFecha'],
+                    usuario=request.user
+                )
+                messages.success(
+                    request, 
+                    f'Reenvío creado exitosamente. Nuevo movimiento: #{nuevo_movimiento.idMovimiento}'
+                )
+                return redirect('movimiento:detail', pk=nuevo_movimiento.pk)
+            except Exception as e:
+                messages.error(request, f'Error al crear el reenvío: {str(e)}')
+    else:
+        form = ReenvioRapidoForm(movimiento_original=movimiento_original)
+
+    context = {
+        'form': form,
+        'titulo': f'Crear Reenvío - Movimiento #{movimiento_original.idMovimiento}',
+        'movimiento_original': movimiento_original
+    }
+    return render(request, 'movimiento/reenvio_rapido_form.html', context)
+
+
+@login_required
+def api_motoristas_por_farmacia(request, farmacia_id):
+    """
+    API que devuelve los motoristas asignados a una farmacia específica
+    """
+    try:
+        # Verificar que la farmacia existe y está activa
+        from apps.farmacia.models import Farmacia
+        farmacia = get_object_or_404(Farmacia, id=farmacia_id, activo=True)
+        
+        # Obtener asignaciones activas para la farmacia
+        asignaciones_activas = AsignacionFarmacia.objects.filter(
+            farmacia_id=farmacia_id,
+            estado='ACTIVA',
+            activo=True
+        ).select_related('motorista')
+        
+        motoristas_data = []
+        for asignacion in asignaciones_activas:
+            motorista = asignacion.motorista
+            if motorista.activo:
+                motoristas_data.append({
+                    'id': motorista.id,
+                    'nombre_completo': motorista.nombre_completo,
+                    'rut': motorista.rut,
+                    'telefono': motorista.telefono or 'No disponible'
+                })
+        
+        return JsonResponse({
+            'success': True,
+            'farmacia': farmacia.nombre,
+            'motoristas': motoristas_data,
+            'total': len(motoristas_data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
+@permission_required('movimiento.view_ordendespacho', raise_exception=True)
+def api_ordenes_activas(request):
+    """
+    API que devuelve las órdenes de despacho activas para selects
+    """
+    try:
+        ordenes = OrdenDespacho.objects.filter(
+            activo=True, 
+            estado__in=['pendiente', 'en_proceso']
+        ).values('idOrden', 'numero_orden', 'cliente_nombre', 'estado')
+        
+        ordenes_data = list(ordenes)
+        
+        return JsonResponse({
+            'success': True,
+            'ordenes': ordenes_data,
+            'total': len(ordenes_data)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
