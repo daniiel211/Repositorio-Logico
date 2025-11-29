@@ -10,9 +10,12 @@
         <h1 class="h3 mb-0">
             <i class="bi bi-house-door me-2"></i>Gestión de Farmacias
         </h1>
+        <!-- Botón Nueva Farmacia - Solo gerentes -->
+        {% if perms.farmacia.add_farmacia %}
         <a href="{% url 'farmacia:create' %}" class="btn btn-primary">
             <i class="bi bi-plus-circle me-1"></i>Nueva Farmacia
         </a>
+        {% endif %}
     </div>
 
     <!-- Filtros y Búsqueda -->
@@ -100,28 +103,35 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
+                                    <!-- Botón Editar - Gerentes y supervisores -->
+                                    {% if perms.farmacia.change_farmacia %}
                                     <a href="{% url 'farmacia:update' farmacia.IdFarmacia %}" 
                                        class="btn btn-outline-warning" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    {% if farmacia.activo %}
-                                    <form method="post" action="{% url 'farmacia:delete' farmacia.IdFarmacia %}" 
-                                          class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-danger" 
-                                                title="Desactivar" onclick="return confirm('¿Desactivar esta farmacia?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                    {% else %}
-                                    <form method="post" action="{% url 'farmacia:reactivate' farmacia.IdFarmacia %}" 
-                                          class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline-success" 
-                                                title="Reactivar" onclick="return confirm('¿Reactivar esta farmacia?')">
-                                            <i class="bi bi-arrow-clockwise"></i>
-                                        </button>
-                                    </form>
+                                    {% endif %}
+                                    
+                                    <!-- Botones Desactivar/Reactivar - Solo gerentes -->
+                                    {% if perms.farmacia.delete_farmacia %}
+                                        {% if farmacia.activo %}
+                                        <form method="post" action="{% url 'farmacia:delete' farmacia.IdFarmacia %}" 
+                                              class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger" 
+                                                    title="Desactivar" onclick="return confirm('¿Desactivar esta farmacia?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{% url 'farmacia:reactivate' farmacia.IdFarmacia %}" 
+                                              class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-success" 
+                                                    title="Reactivar" onclick="return confirm('¿Reactivar esta farmacia?')">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </td>
@@ -177,9 +187,12 @@
                 <i class="bi bi-house-door display-1 text-muted"></i>
                 <h4 class="text-muted mt-3">No hay farmacias registradas</h4>
                 <p class="text-muted">Comienza agregando la primera farmacia al sistema.</p>
+                <!-- Botón Agregar Farmacia - Solo gerentes -->
+                {% if perms.farmacia.add_farmacia %}
                 <a href="{% url 'farmacia:create' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-1"></i>Agregar Farmacia
                 </a>
+                {% endif %}
             </div>
             {% endif %}
         </div>

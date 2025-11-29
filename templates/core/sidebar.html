@@ -25,18 +25,22 @@
         </ul>
         {% endif %}
 
-        <!-- Módulos para Supervisor y Gerente -->
+        <!-- Módulos para Supervisor y Gerente - INCLUYE FARMACIAS -->
         {% if perms.farmacia.view_farmacia or perms.motorista.view_motorista or perms.moto.view_moto %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Gestión del Sistema</span>
         </h6>
         <ul class="nav flex-column">
-            <!-- Gestión de Farmacias -->
+            <!-- Gestión de Farmacias - Visible para todos con permiso view -->
             {% if perms.farmacia.view_farmacia %}
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'farmacia:list' %}">
                     <i class="fas fa-clinic-medical"></i>
                     Farmacias
+                    <!-- Badge indicando permisos limitados -->
+                    {% if not perms.farmacia.add_farmacia and not perms.farmacia.change_farmacia %}
+                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
+                    {% endif %}
                 </a>
             </li>
             {% endif %}

@@ -102,24 +102,35 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        <!-- Botón Nueva Farmacia - Solo gerentes -->
+                        {% if perms.farmacia.add_farmacia %}
                         <div class="col-md-4 mb-3">
                             <a href="{% url 'farmacia:create' %}" class="btn btn-primary btn-block py-3">
                                 <i class="bi bi-plus-circle me-2"></i>
                                 Nueva Farmacia
                             </a>
                         </div>
+                        {% endif %}
+                        
+                        <!-- Botón Ver Todas - Todos con permiso view -->
+                        {% if perms.farmacia.view_farmacia %}
                         <div class="col-md-4 mb-3">
                             <a href="{% url 'farmacia:list' %}" class="btn btn-success btn-block py-3">
                                 <i class="bi bi-list-ul me-2"></i>
                                 Ver Todas las Farmacias
                             </a>
                         </div>
+                        {% endif %}
+                        
+                        <!-- Botón Farmacias Activas - Todos con permiso view -->
+                        {% if perms.farmacia.view_farmacia %}
                         <div class="col-md-4 mb-3">
                             <a href="{% url 'farmacia:list' %}?estado=activas" class="btn btn-info btn-block py-3">
                                 <i class="bi bi-check-circle me-2"></i>
                                 Farmacias Activas
                             </a>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

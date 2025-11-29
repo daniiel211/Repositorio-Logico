@@ -1,18 +1,50 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, View
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
+
+# Mixins personalizados según el prompt
 from .models import Farmacia
 from .forms import FarmaciaForm
 
-class FarmaciaListView(LoginRequiredMixin, ListView):
+class PermisoRequeridoMixin(PermissionRequiredMixin):
+    """Mixin base para permisos - Compatible con Django 5"""
+    raise_exception = True
+    login_url = '/usuario/acceso-denegado/'
+
+class SoloGerenteMixin(PermisoRequeridoMixin):
+    """Solo accesible para gerentes"""
+    permission_required = [
+        'farmacia.add_farmacia',
+        'farmacia.change_farmacia', 
+        'farmacia.delete_farmacia'
+    ]
+
+class GerenteSupervisorMixin(PermisoRequeridoMixin):
+    """Accesible para gerentes y supervisores"""
+    permission_required = [
+        'farmacia.add_farmacia',
+        'farmacia.change_farmacia'
+    ]
+
+class SoloLecturaMixin(PermisoRequeridoMixin):
+    """Solo permisos de visualización"""
+    permission_required = ['farmacia.view_farmacia']
+
+# Vistas protegidas con mixins de permisos
+class FarmaciaListView(LoginRequiredMixin, SoloLecturaMixin, ListView):
+    """
+    Lista de farmacias - Accesible para todos los roles autenticados
+    Requiere permiso: farmacia.view_farmacia
+    """
     model = Farmacia
     template_name = 'farmacia/farmacia_list.html'
     context_object_name = 'farmacias'
     paginate_by = 10
+    permission_required = ['farmacia.view_farmacia']
 
     def get_queryset(self):
         queryset = Farmacia.objects.all().order_by('-fecha_creacion')
@@ -42,11 +74,16 @@ class FarmaciaListView(LoginRequiredMixin, ListView):
         context['estado_filtro'] = self.request.GET.get('estado', '')
         return context
 
-class FarmaciaCreateView(LoginRequiredMixin, CreateView):
+class FarmaciaCreateView(LoginRequiredMixin, SoloGerenteMixin, CreateView):
+    """
+    Crear farmacia - Solo gerentes
+    Requiere permiso: farmacia.add_farmacia
+    """
     model = Farmacia
     form_class = FarmaciaForm
     template_name = 'farmacia/farmacia_form.html'
     success_url = reverse_lazy('farmacia:list')
+    permission_required = ['farmacia.add_farmacia']
 
     def form_valid(self, form):
         form.instance.creado_por = self.request.user
@@ -57,11 +94,16 @@ class FarmaciaCreateView(LoginRequiredMixin, CreateView):
         messages.error(self.request, 'Por favor corrija los errores en el formulario.')
         return super().form_invalid(form)
 
-class FarmaciaUpdateView(LoginRequiredMixin, UpdateView):
+class FarmaciaUpdateView(LoginRequiredMixin, GerenteSupervisorMixin, UpdateView):
+    """
+    Editar farmacia - Gerentes y supervisores
+    Requiere permiso: farmacia.change_farmacia
+    """
     model = Farmacia
     form_class = FarmaciaForm
     template_name = 'farmacia/farmacia_form.html'
     success_url = reverse_lazy('farmacia:list')
+    permission_required = ['farmacia.change_farmacia']
 
     def form_valid(self, form):
         form.instance.modificado_por = self.request.user
@@ -72,21 +114,39 @@ class FarmaciaUpdateView(LoginRequiredMixin, UpdateView):
         messages.error(self.request, 'Por favor corrija los errores en el formulario.')
         return super().form_invalid(form)
 
-class FarmaciaDeleteView(LoginRequiredMixin, View):
+class FarmaciaDeleteView(LoginRequiredMixin, SoloGerenteMixin, View):
+    """
+    Desactivar farmacia - Solo gerentes
+    Requiere permiso: farmacia.delete_farmacia
+    """
+    permission_required = ['farmacia.delete_farmacia']
+
     def post(self, request, pk):
         farmacia = get_object_or_404(Farmacia, pk=pk)
         farmacia.soft_delete()
         messages.success(request, 'Farmacia desactivada exitosamente.')
         return redirect('farmacia:list')
 
-class FarmaciaReactiveView(LoginRequiredMixin, View):
+class FarmaciaReactiveView(LoginRequiredMixin, SoloGerenteMixin, View):
+    """
+    Reactivar farmacia - Solo gerentes
+    Requiere permiso: farmacia.delete_farmacia (para reactivar)
+    """
+    permission_required = ['farmacia.delete_farmacia']
+
     def post(self, request, pk):
         farmacia = get_object_or_404(Farmacia, pk=pk)
         farmacia.reactivar()
         messages.success(request, 'Farmacia reactivada exitosamente.')
         return redirect('farmacia:list')
 
-class FarmaciaSearchView(LoginRequiredMixin, View):
+class FarmaciaSearchView(LoginRequiredMixin, SoloLecturaMixin, View):
+    """
+    Búsqueda de farmacias - Todos los roles autenticados
+    Requiere permiso: farmacia.view_farmacia
+    """
+    permission_required = ['farmacia.view_farmacia']
+
     def get(self, request):
         query = request.GET.get('q', '')
         if query:
@@ -102,7 +162,13 @@ class FarmaciaSearchView(LoginRequiredMixin, View):
             data = []
         return JsonResponse({'results': data})
 
-class DashboardView(LoginRequiredMixin, View):
+class DashboardView(LoginRequiredMixin, SoloLecturaMixin, View):
+    """
+    Dashboard de farmacias - Todos los roles autenticados
+    Requiere permiso: farmacia.view_farmacia
+    """
+    permission_required = ['farmacia.view_farmacia']
+
     def get(self, request):
         farmacias_activas = Farmacia.objects.filter(activo=True).count()
         farmacias_inactivas = Farmacia.objects.filter(activo=False).count()

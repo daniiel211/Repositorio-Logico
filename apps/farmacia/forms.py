@@ -1,7 +1,12 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Farmacia
 
 class FarmaciaForm(forms.ModelForm):
+    """
+    Formulario de farmacia con validaciones de permisos
+    """
+    
     class Meta:
         model = Farmacia
         exclude = ['creado_por', 'fecha_creacion', 'modificado_por', 'fecha_modificacion']
@@ -20,7 +25,10 @@ class FarmaciaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # Extraer el usuario para validaciones de permisos
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
         # Agregar class Bootstrap a todos los campos
         for field_name, field in self.fields.items():
             if 'class' not in field.widget.attrs:
@@ -28,3 +36,15 @@ class FarmaciaForm(forms.ModelForm):
             # Marcar campos requeridos
             if field.required:
                 field.label = f"{field.label} *"
+    
+    def clean(self):
+        """
+        Validación de permisos del usuario actual
+        """
+        cleaned_data = super().clean()
+        
+        # Validar permisos del usuario actual para crear farmacias
+        if self.user and not self.user.has_perm('farmacia.add_farmacia'):
+            raise ValidationError("No tiene permisos para crear farmacias")
+            
+        return cleaned_data
