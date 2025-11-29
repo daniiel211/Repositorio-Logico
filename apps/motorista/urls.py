@@ -1,4 +1,4 @@
-# apps/motorista/urls.py (actualizado)
+# apps/motorista/urls.py
 from django.urls import path
 from . import views
 

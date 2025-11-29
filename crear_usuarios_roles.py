@@ -1,6 +1,6 @@
 """
 Script para crear usuarios, grupos y asignar permisos en el sistema LogiCo
-INCLUYE PERMISOS PARA APLICACIONES FARMACIA Y MOTO
+INCLUYE PERMISOS PARA APLICACIONES FARMACIA, MOTO Y MOTORISTA
 Ejecutar: python manage.py shell < crear_usuarios_roles.py
 """
 
@@ -37,6 +37,8 @@ def crear_grupos_y_permisos():
         'add_farmacia', 'change_farmacia', 'delete_farmacia', 'view_farmacia',
         # Moto (acceso completo)
         'add_moto', 'change_moto', 'delete_moto', 'view_moto',
+        # Motorista (acceso completo)
+        'add_motorista', 'change_motorista', 'delete_motorista', 'view_motorista',
     ]
     
     # Asignar permisos al grupo Gerente
@@ -62,6 +64,8 @@ def crear_grupos_y_permisos():
         'change_farmacia', 'view_farmacia',
         # Moto (ver y editar)
         'change_moto', 'view_moto',
+        # Motorista (ver y editar)
+        'change_motorista', 'view_motorista',
     ]
     
     for perm_codename in permisos_supervisor:
@@ -86,6 +90,8 @@ def crear_grupos_y_permisos():
         'view_farmacia',
         # Moto (solo ver)
         'view_moto',
+        # Motorista (solo ver)
+        'view_motorista',
     ]
     
     for perm_codename in permisos_operador:
@@ -110,6 +116,8 @@ def crear_grupos_y_permisos():
         'view_farmacia',
         # Moto (solo ver)
         'view_moto',
+        # Motorista (solo ver)
+        'view_motorista',
     ]
     
     for perm_codename in permisos_motorista:
@@ -299,7 +307,7 @@ def verificar_creacion():
         print(f"- {grupo.name}: {permisos.count()} permisos")
         
         # Mostrar permisos por aplicación
-        for app_label in ['usuario', 'farmacia', 'moto']:
+        for app_label in ['usuario', 'farmacia', 'moto', 'motorista']:
             permisos_app = permisos.filter(content_type__app_label=app_label)
             if permisos_app:
                 print(f"  {app_label.capitalize()}: {', '.join([p.codename for p in permisos_app])}")
@@ -324,7 +332,7 @@ def verificar_creacion():
 
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
-    print("INCLUYENDO PERMISOS DE FARMACIA Y MOTO")
+    print("INCLUYENDO PERMISOS DE FARMACIA, MOTO Y MOTORISTA")
     print("=" * 60)
     
     try:
@@ -370,30 +378,30 @@ if __name__ == "__main__":
         print("    Usuario: motorista.logico")
         print("    Password: LogicoMotorista.2025")
         
-        print("\nPERMISOS POR ROL - MOTO:")
+        print("\nPERMISOS POR ROL - MOTORISTA:")
         print("  Gerente:")
-        print("    Crear motos: PERMITIDO")
-        print("    Editar motos: PERMITIDO") 
-        print("    Eliminar motos: PERMITIDO")
-        print("    Ver motos: PERMITIDO")
+        print("    Crear motoristas: PERMITIDO")
+        print("    Editar motoristas: PERMITIDO") 
+        print("    Eliminar motoristas: PERMITIDO")
+        print("    Ver motoristas: PERMITIDO")
         
         print("  Supervisor:")
-        print("    Crear motos: DENEGADO")
-        print("    Editar motos: PERMITIDO")
-        print("    Eliminar motos: DENEGADO") 
-        print("    Ver motos: PERMITIDO")
+        print("    Crear motoristas: DENEGADO")
+        print("    Editar motoristas: PERMITIDO")
+        print("    Eliminar motoristas: DENEGADO") 
+        print("    Ver motoristas: PERMITIDO")
         
         print("  Operador:")
-        print("    Crear motos: DENEGADO")
-        print("    Editar motos: DENEGADO")
-        print("    Eliminar motos: DENEGADO")
-        print("    Ver motos: PERMITIDO")
+        print("    Crear motoristas: DENEGADO")
+        print("    Editar motoristas: DENEGADO")
+        print("    Eliminar motoristas: DENEGADO")
+        print("    Ver motoristas: PERMITIDO")
         
         print("  Motorista:")
-        print("    Crear motos: DENEGADO")
-        print("    Editar motos: DENEGADO")
-        print("    Eliminar motos: DENEGADO")
-        print("    Ver motos: PERMITIDO")
+        print("    Crear motoristas: DENEGADO")
+        print("    Editar motoristas: DENEGADO")
+        print("    Eliminar motoristas: DENEGADO")
+        print("    Ver motoristas: PERMITIDO")
         
         print("\nNOTA: Los permisos se aplican automáticamente al sistema de control de acceso.")
         print("Los botones y enlaces se mostrarán/ocultarán según los permisos de cada usuario.")

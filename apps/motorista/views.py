@@ -9,7 +9,38 @@ from django.http import JsonResponse
 from .models import Motorista
 from .forms import MotoristaForm
 
-class MotoristaListView(LoginRequiredMixin, ListView):
+# Mixins personalizados para permisos
+class PermisoRequeridoMixin(LoginRequiredMixin):
+    """Mixin base para permisos"""
+    raise_exception = True
+    login_url = '/usuario/login/'
+
+class SoloGerenteMixin(PermisoRequeridoMixin):
+    """Solo accesible para gerentes"""
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perms(['motorista.add_motorista', 'motorista.change_motorista', 'motorista.delete_motorista']):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+class GerenteSupervisorMixin(PermisoRequeridoMixin):
+    """Accesible para gerentes y supervisores"""
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perms(['motorista.add_motorista', 'motorista.change_motorista']):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+class SoloLecturaMixin(PermisoRequeridoMixin):
+    """Solo permisos de visualización"""
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perm('motorista.view_motorista'):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+class MotoristaListView(SoloLecturaMixin, ListView):
+    """Lista de motoristas - Accesible para todos los roles con permiso de visualización"""
     model = Motorista
     template_name = 'motorista/motorista_list.html'
     context_object_name = 'motoristas'
@@ -39,9 +70,14 @@ class MotoristaListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['estado_filtro'] = self.request.GET.get('estado', '')
+        # Agregar información de permisos para el template
+        context['puede_crear'] = self.request.user.has_perm('motorista.add_motorista')
+        context['puede_editar'] = self.request.user.has_perm('motorista.change_motorista')
+        context['puede_eliminar'] = self.request.user.has_perm('motorista.delete_motorista')
         return context
 
-class MotoristaCreateView(LoginRequiredMixin, CreateView):
+class MotoristaCreateView(SoloGerenteMixin, CreateView):
+    """Crear motorista - Solo gerentes"""
     model = Motorista
     form_class = MotoristaForm
     template_name = 'motorista/motorista_form.html'
@@ -56,7 +92,8 @@ class MotoristaCreateView(LoginRequiredMixin, CreateView):
         messages.error(self.request, 'Por favor corrija los errores en el formulario.')
         return super().form_invalid(form)
 
-class MotoristaUpdateView(LoginRequiredMixin, UpdateView):
+class MotoristaUpdateView(GerenteSupervisorMixin, UpdateView):
+    """Editar motorista - Gerentes y supervisores"""
     model = Motorista
     form_class = MotoristaForm
     template_name = 'motorista/motorista_form.html'
@@ -71,21 +108,24 @@ class MotoristaUpdateView(LoginRequiredMixin, UpdateView):
         messages.error(self.request, 'Por favor corrija los errores en el formulario.')
         return super().form_invalid(form)
 
-class MotoristaDeleteView(LoginRequiredMixin, View):
+class MotoristaDeleteView(SoloGerenteMixin, View):
+    """Eliminar motorista - Solo gerentes"""
     def post(self, request, pk):
         motorista = get_object_or_404(Motorista, pk=pk)
         motorista.soft_delete()
         messages.success(request, 'Motorista desactivado exitosamente.')
         return redirect('motorista:list')
 
-class MotoristaReactivateView(LoginRequiredMixin, View):
+class MotoristaReactivateView(SoloGerenteMixin, View):
+    """Reactivar motorista - Solo gerentes"""
     def post(self, request, pk):
         motorista = get_object_or_404(Motorista, pk=pk)
         motorista.reactivar()
         messages.success(request, 'Motorista reactivado exitosamente.')
         return redirect('motorista:list')
 
-class MotoristaSearchView(LoginRequiredMixin, View):
+class MotoristaSearchView(SoloLecturaMixin, View):
+    """Búsqueda de motoristas - Accesible para todos con permiso de visualización"""
     def get(self, request):
         query = request.GET.get('q', '')
         if query:
@@ -102,10 +142,14 @@ class MotoristaSearchView(LoginRequiredMixin, View):
             data = []
         return JsonResponse({'results': data})
 
-class MotoristaDashboardView(LoginRequiredMixin, View):
+class MotoristaDashboardView(SoloLecturaMixin, View):
+    """Dashboard de motoristas - Accesible para todos con permiso de visualización"""
     template_name = 'motorista/dashboard.html'
     
     def get(self, request):
+        # Verificar permisos adicionales para acciones
+        puede_crear = request.user.has_perm('motorista.add_motorista')
+        
         # Estadísticas
         total_motoristas = Motorista.objects.count()
         motoristas_activos = Motorista.objects.filter(activo=True).count()
@@ -137,6 +181,7 @@ class MotoristaDashboardView(LoginRequiredMixin, View):
             'controles_proximos': controles_proximos,
             'licencias_proximas_vencer': licencias_proximas_vencer,
             'ultimos_registros': ultimos_registros,
+            'puede_crear': puede_crear,
         }
         
         return render(request, self.template_name, context)

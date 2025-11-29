@@ -31,12 +31,28 @@ class MotoristaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             if 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = 'form-control'
             if field.required:
                 field.widget.attrs['required'] = 'required'
+
+    def clean(self):
+        """Validación de permisos del usuario actual"""
+        cleaned_data = super().clean()
+        
+        # Validar permisos del usuario actual
+        if self.user:
+            if self.instance.pk:  # Edición
+                if not self.user.has_perm('motorista.change_motorista'):
+                    raise ValidationError("No tiene permisos para editar motoristas")
+            else:  # Creación
+                if not self.user.has_perm('motorista.add_motorista'):
+                    raise ValidationError("No tiene permisos para crear motoristas")
+                    
+        return cleaned_data
 
     def clean_rut(self):
         """Limpia y valida el formato del RUT"""
