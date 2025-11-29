@@ -209,22 +209,41 @@
         </ul>
         {% endif %}
 
-        <!-- MÓDULO GESTIÓN DE MOVIMIENTOS -->
-        {% if perms.movimiento.view_movimiento %}
+        <!-- MÓDULO GESTIÓN DE MOVIMIENTOS - ACTUALIZADO -->
+        {% if perms.movimiento.view_movimiento or perms.movimiento.view_ordendespacho %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span><i class="fas fa-shipping-fast me-1"></i> Gestión de Movimientos</span>
         </h6>
         <ul class="nav flex-column mb-2">
+            <!-- Dashboard Movimientos -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'movimiento:dashboard' %}">
                     <i class="fas fa-tachometer-alt me-2"></i>
                     Dashboard Movimientos
                 </a>
             </li>
+            
+            <!-- Dashboard Órdenes -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:orden_dashboard' %}">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    Dashboard Órdenes
+                </a>
+            </li>
+            
+            <!-- Lista de Movimientos -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'movimiento:list' %}">
                     <i class="fas fa-list me-2"></i>
                     Lista de Movimientos
+                </a>
+            </li>
+            
+            <!-- Lista de Órdenes -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:orden_list' %}">
+                    <i class="fas fa-file-invoice me-2"></i>
+                    Lista de Órdenes
                 </a>
             </li>
             
@@ -257,6 +276,16 @@
                         </a>
                     </li>
                 </ul>
+            </li>
+            {% endif %}
+            
+            <!-- Crear Orden de Despacho - Solo con permiso add -->
+            {% if perms.movimiento.add_ordendespacho %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:orden_crear' %}">
+                    <i class="fas fa-file-medical me-2"></i>
+                    Crear Orden de Despacho
+                </a>
             </li>
             {% endif %}
         </ul>
@@ -342,6 +371,13 @@
                             Reportes Motos
                         </a>
                     </li>
+                    <!-- Nuevo: Reportes de Órdenes -->
+                    <li>
+                        <a class="dropdown-item" href="{% url 'reporte:ordenes' %}">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            Reportes Órdenes
+                        </a>
+                    </li>
                 </ul>
             </li>
             
@@ -365,7 +401,7 @@
         <ul class="nav flex-column mb-2">
             <!-- Movimientos Asignados al Motorista -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}?motorista={{ user.id }}">
+                <a class="nav-link" href="{% url 'movimiento:list' %}">
                     <i class="fas fa-list me-2"></i>
                     Mis Movimientos Asignados
                 </a>
@@ -381,9 +417,17 @@
             
             <!-- Historial de Entregas -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}?estado=completado&motorista={{ user.id }}">
+                <a class="nav-link" href="{% url 'movimiento:list' %}?estado=entregado">
                     <i class="fas fa-history me-2"></i>
                     Mi Historial de Entregas
+                </a>
+            </li>
+            
+            <!-- Mis Órdenes Asignadas -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'movimiento:orden_list' %}">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    Mis Órdenes Asignadas
                 </a>
             </li>
             
@@ -519,17 +563,47 @@
     background: #a8a8a8;
 }
 
-/* Estilos específicos para el módulo de asignaciones */
-.sidebar .nav-link i.fa-tasks {
+/* Estilos específicos para el módulo de movimientos */
+.sidebar .nav-link i.fa-shipping-fast {
+    color: #28a745;
+}
+
+.sidebar .nav-link:hover i.fa-shipping-fast {
+    color: #007bff;
+}
+
+.sidebar .nav-link.active i.fa-shipping-fast {
+    color: #007bff;
+}
+
+/* Estilos para nuevos iconos de órdenes */
+.sidebar .nav-link i.fa-clipboard-list,
+.sidebar .nav-link i.fa-file-invoice,
+.sidebar .nav-link i.fa-file-medical {
     color: #6f42c1;
 }
 
-.sidebar .nav-link:hover i.fa-tasks {
+.sidebar .nav-link:hover i.fa-clipboard-list,
+.sidebar .nav-link:hover i.fa-file-invoice,
+.sidebar .nav-link:hover i.fa-file-medical {
     color: #007bff;
 }
 
-.sidebar .nav-link.active i.fa-tasks {
-    color: #007bff;
+/* Indicador visual para nuevas funcionalidades */
+.new-feature-badge {
+    background: linear-gradient(45deg, #ff6b6b, #ffa726);
+    color: white;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    margin-left: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 </style>
 
@@ -564,15 +638,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Mejorar la experiencia del módulo de asignaciones
-    const asignacionLinks = document.querySelectorAll('#sidebar a[href*="asignacion"]');
-    asignacionLinks.forEach(link => {
+    // Mejorar la experiencia del módulo de movimientos
+    const movimientoLinks = document.querySelectorAll('#sidebar a[href*="movimiento"]');
+    movimientoLinks.forEach(link => {
         link.addEventListener('click', function() {
-            // Remover activo de todos los enlaces de asignación
-            asignacionLinks.forEach(l => l.classList.remove('active'));
+            // Remover activo de todos los enlaces de movimiento
+            movimientoLinks.forEach(l => l.classList.remove('active'));
             // Agregar activo al enlace clickeado
             this.classList.add('active');
         });
     });
+
+    // Agregar indicadores visuales para nuevas funcionalidades (solo primera vez)
+    if (!localStorage.getItem('movimientosVisto')) {
+        const ordenLinks = document.querySelectorAll('#sidebar a[href*="orden"]');
+        ordenLinks.forEach(link => {
+            const badge = document.createElement('span');
+            badge.className = 'new-feature-badge';
+            badge.textContent = 'Nuevo';
+            link.appendChild(badge);
+        });
+        
+        // Marcar como visto después de 10 segundos
+        setTimeout(() => {
+            localStorage.setItem('movimientosVisto', 'true');
+            document.querySelectorAll('.new-feature-badge').forEach(badge => {
+                badge.remove();
+            });
+        }, 10000);
+    }
 });
 </script>

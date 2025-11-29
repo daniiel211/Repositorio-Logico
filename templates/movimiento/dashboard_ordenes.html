@@ -1,0 +1,389 @@
+<!-- templates/movimiento/dashboard_ordenes.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">{{ titulo }}</h1>
+        {% if perms.movimiento.add_ordendespacho %}
+        <a href="{% url 'movimiento:orden_crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Orden de Despacho
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="row">
+        <!-- Total Órdenes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total de Órdenes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_ordenes }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Órdenes Pendientes -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Órdenes Pendientes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% for estado in ordenes_por_estado %}
+                                    {% if estado.estado == 'pendiente' %}
+                                        {{ estado.total }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Órdenes en Proceso -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Órdenes en Proceso
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% for estado in ordenes_por_estado %}
+                                    {% if estado.estado == 'en_proceso' %}
+                                        {{ estado.total }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck-loading fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Órdenes Completadas -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Órdenes Completadas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% for estado in ordenes_por_estado %}
+                                    {% if estado.estado == 'completado' %}
+                                        {{ estado.total }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribución de Estados y Últimas Órdenes -->
+    <div class="row">
+        <!-- Gráfico de Estados -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Distribución de Órdenes por Estado</h6>
+                </div>
+                <div class="card-body">
+                    {% if ordenes_por_estado %}
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="estadoOrdenesChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for estado in ordenes_por_estado %}
+                        <span class="mr-3">
+                            <i class="fas fa-circle text-{% if estado.estado == 'pendiente' %}warning{% elif estado.estado == 'en_proceso' %}info{% elif estado.estado == 'completado' %}success{% elif estado.estado == 'fallido' %}danger{% elif estado.estado == 'cancelado' %}secondary{% else %}primary{% endif %}"></i>
+                            {{ estado.estado|title }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No hay datos de órdenes para mostrar.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimas Órdenes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Últimas Órdenes Registradas</h6>
+                    <a href="{% url 'movimiento:orden_list' %}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if ultimas_ordenes %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>N° Orden</th>
+                                    <th>Cliente</th>
+                                    <th>Movimientos</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for orden in ultimas_ordenes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ orden.numero_orden }}</strong>
+                                        {% if orden.id_compra_online %}
+                                        <br><small class="text-muted">Compra: {{ orden.id_compra_online }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ orden.cliente_nombre }}
+                                        <br><small class="text-muted">{{ orden.cliente_telefono }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary rounded-pill">
+                                            {{ orden.movimientos.count }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-{% if orden.estado == 'completado' %}success{% elif orden.estado == 'pendiente' %}warning text-dark{% elif orden.estado == 'fallido' or orden.estado == 'cancelado' %}danger{% else %}info{% endif %}">
+                                            {{ orden.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'movimiento:orden_detalle' orden.pk %}" class="btn btn-info btn-sm" title="Ver Detalle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if perms.movimiento.change_ordendespacho %}
+                                            <a href="#" class="btn btn-warning btn-sm" title="Editar Orden">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No hay órdenes recientes.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    {% if perms.movimiento.add_movimiento %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'movimiento:orden_crear' %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-file-medical me-2"></i>
+                                Crear Nueva Orden
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'movimiento:crear' 'directo' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-bolt me-2"></i>
+                                Movimiento Directo
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'movimiento:crear' 'receta' %}" class="btn btn-info btn-block">
+                                <i class="fas fa-prescription me-2"></i>
+                                Movimiento Receta
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'movimiento:crear' 'traslado' %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-exchange-alt me-2"></i>
+                                Movimiento Traslado
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para el gráfico de estados
+    const estadosData = {
+        labels: [
+            {% for estado in ordenes_por_estado %}
+                '{{ estado.estado|title }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for estado in ordenes_por_estado %}
+                    {{ estado.total }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                '#f6c23e', // warning - pendiente
+                '#36b9cc', // info - en_proceso
+                '#1cc88a', // success - completado
+                '#e74a3b', // danger - fallido
+                '#858796', // secondary - cancelado
+                '#4e73df'  // primary - otros
+            ],
+            hoverBackgroundColor: [
+                '#f8d36c',
+                '#5ac7d9',
+                '#3ae6a8',
+                '#ea6d5f',
+                '#9d9ea7',
+                '#6a8ce3'
+            ],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }]
+    };
+
+    // Configuración del gráfico
+    const config = {
+        type: 'doughnut',
+        data: estadosData,
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+            },
+            legend: {
+                display: false
+            },
+            cutoutPercentage: 80,
+        },
+    };
+
+    // Renderizar el gráfico
+    const ctx = document.getElementById('estadoOrdenesChart');
+    if (ctx) {
+        new Chart(ctx, config);
+    }
+
+    // Actualizar contadores en tiempo real
+    function actualizarContadores() {
+        // Aquí podrías agregar lógica para actualizar los contadores via AJAX
+        console.log('Contadores actualizados');
+    }
+
+    // Actualizar cada 30 segundos (opcional)
+    setInterval(actualizarContadores, 30000);
+});
+</script>
+
+<style>
+.chart-pie {
+    position: relative;
+    height: 250px;
+}
+
+.btn-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+}
+
+.badge.rounded-pill {
+    font-size: 0.75rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #e3e6f0;
+    background-color: #f8f9fc;
+}
+
+/* Animaciones para las tarjetas de estadísticas */
+.card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .btn-group .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}

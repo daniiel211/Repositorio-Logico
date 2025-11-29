@@ -1,6 +1,7 @@
 """
 Script para crear usuarios, grupos y asignar permisos en el sistema LogiCo
 INCLUYE PERMISOS PARA APLICACIONES: USUARIO, FARMACIA, MOTO, MOTORISTA, ASIGNACION Y MOVIMIENTO
+ACTUALIZADO CON PERMISOS PARA ÓRDENES DE DESPACHO Y NUEVAS VISTAS
 Ejecutar: python manage.py shell < crear_usuarios_roles.py
 """
 
@@ -29,7 +30,7 @@ def crear_grupos_y_permisos():
     if created:
         print("Grupo 'Gerentes' creado")
     
-    # Permisos específicos para todas las aplicaciones
+    # Permisos específicos para todas las aplicaciones - ACTUALIZADO
     permisos_gerente = [
         # Usuario (acceso completo)
         'add_usuario', 'change_usuario', 'delete_usuario', 'view_usuario',
@@ -42,13 +43,14 @@ def crear_grupos_y_permisos():
         # Asignación (acceso completo)
         'add_asignacionmoto', 'change_asignacionmoto', 'delete_asignacionmoto', 'view_asignacionmoto',
         'add_asignacionfarmacia', 'change_asignacionfarmacia', 'delete_asignacionfarmacia', 'view_asignacionfarmacia',
-        # Movimiento (acceso completo)
+        # Movimiento (acceso completo) - ACTUALIZADO
         'add_movimiento', 'change_movimiento', 'delete_movimiento', 'view_movimiento',
         'add_movimientodirecto', 'change_movimientodirecto', 'delete_movimientodirecto', 'view_movimientodirecto',
         'add_movimientoreceta', 'change_movimientoreceta', 'delete_movimientoreceta', 'view_movimientoreceta',
         'add_movimientotraslado', 'change_movimientotraslado', 'delete_movimientotraslado', 'view_movimientotraslado',
         'add_movimientoreenvio', 'change_movimientoreenvio', 'delete_movimientoreenvio', 'view_movimientoreenvio',
         'add_bitacoramovimiento', 'change_bitacoramovimiento', 'delete_bitacoramovimiento', 'view_bitacoramovimiento',
+        # OrdenDespacho (acceso completo) - NUEVO
         'add_ordendespacho', 'change_ordendespacho', 'delete_ordendespacho', 'view_ordendespacho',
         # Core (acceso completo)
         'view_dashboard', 'view_estadisticas', 'change_configuracionsistema',
@@ -82,13 +84,14 @@ def crear_grupos_y_permisos():
         # Asignación (ver y editar)
         'add_asignacionmoto', 'change_asignacionmoto', 'view_asignacionmoto',
         'add_asignacionfarmacia', 'change_asignacionfarmacia', 'view_asignacionfarmacia',
-        # Movimiento (ver y editar)
+        # Movimiento (ver y editar) - ACTUALIZADO
         'add_movimiento', 'change_movimiento', 'view_movimiento',
         'add_movimientodirecto', 'change_movimientodirecto', 'view_movimientodirecto',
         'add_movimientoreceta', 'change_movimientoreceta', 'view_movimientoreceta',
         'add_movimientotraslado', 'change_movimientotraslado', 'view_movimientotraslado',
         'add_movimientoreenvio', 'change_movimientoreenvio', 'view_movimientoreenvio',
         'view_bitacoramovimiento',
+        # OrdenDespacho (ver y editar) - NUEVO
         'add_ordendespacho', 'change_ordendespacho', 'view_ordendespacho',
         # Core (vista limitada)
         'view_dashboard', 'view_estadisticas',
@@ -120,13 +123,14 @@ def crear_grupos_y_permisos():
         'view_motorista',
         # Asignación (solo ver)
         'view_asignacionmoto', 'view_asignacionfarmacia',
-        # Movimiento (solo ver y crear)
+        # Movimiento (solo ver y crear) - ACTUALIZADO
         'view_movimiento', 'add_movimiento',
         'view_movimientodirecto', 'add_movimientodirecto',
         'view_movimientoreceta', 'add_movimientoreceta',
         'view_movimientotraslado', 'add_movimientotraslado',
         'view_movimientoreenvio', 'add_movimientoreenvio',
         'view_bitacoramovimiento',
+        # OrdenDespacho (solo ver y crear) - NUEVO
         'view_ordendespacho', 'add_ordendespacho',
         # Core (solo dashboard)
         'view_dashboard',
@@ -158,11 +162,12 @@ def crear_grupos_y_permisos():
         'view_motorista',
         # Asignación (solo ver propias asignaciones)
         'view_asignacionmoto', 'view_asignacionfarmacia',
-        # Movimiento (solo ver propios movimientos)
+        # Movimiento (solo ver propios movimientos) - ACTUALIZADO
         'view_movimiento', 'change_movimiento',
         'view_movimientodirecto', 'view_movimientoreceta',
         'view_movimientotraslado', 'view_movimientoreenvio',
         'view_bitacoramovimiento',
+        # OrdenDespacho (solo ver) - NUEVO
         'view_ordendespacho',
         # Core (solo dashboard básico)
         'view_dashboard',
@@ -409,6 +414,7 @@ def mostrar_resumen_permisos():
 if __name__ == "__main__":
     print("INICIANDO CREACION DE USUARIOS Y GRUPOS LOGICO")
     print("INCLUYENDO PERMISOS DE: USUARIO, FARMACIA, MOTO, MOTORISTA, ASIGNACION Y MOVIMIENTO")
+    print("ACTUALIZADO CON PERMISOS PARA ÓRDENES DE DESPACHO")
     print("=" * 80)
     
     try:
@@ -457,7 +463,7 @@ if __name__ == "__main__":
         print("    👤 Usuario: motorista.logico")
         print("    🔑 Password: LogicoMotorista.2025")
         
-        print("\n📋 PERMISOS POR ROL - MOVIMIENTOS:")
+        print("\n📋 PERMISOS POR ROL - MOVIMIENTOS Y ÓRDENES:")
         print("  🎯 Gerente:")
         print("    ✅ Crear movimientos: PERMITIDO")
         print("    ✅ Editar movimientos: PERMITIDO") 
@@ -465,6 +471,8 @@ if __name__ == "__main__":
         print("    ✅ Ver movimientos: PERMITIDO")
         print("    ✅ Cambiar estado: PERMITIDO")
         print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ✅ Editar órdenes: PERMITIDO")
+        print("    ✅ Eliminar órdenes: PERMITIDO")
         print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  📊 Supervisor:")
@@ -474,6 +482,8 @@ if __name__ == "__main__":
         print("    ✅ Ver movimientos: PERMITIDO")
         print("    ✅ Cambiar estado: PERMITIDO")
         print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ✅ Editar órdenes: PERMITIDO")
+        print("    ❌ Eliminar órdenes: DENEGADO")
         print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  ⚙️  Operador:")
@@ -483,6 +493,8 @@ if __name__ == "__main__":
         print("    ✅ Ver movimientos: PERMITIDO")
         print("    ❌ Cambiar estado: DENEGADO")
         print("    ✅ Crear órdenes: PERMITIDO")
+        print("    ❌ Editar órdenes: DENEGADO")
+        print("    ❌ Eliminar órdenes: DENEGADO")
         print("    ✅ Ver bitácora: PERMITIDO")
         
         print("  🛵 Motorista:")
@@ -492,6 +504,8 @@ if __name__ == "__main__":
         print("    👁️  Ver movimientos: SOLO PROPIOS")
         print("    ✅ Cambiar estado: SOLO PROPIOS")
         print("    ❌ Crear órdenes: DENEGADO")
+        print("    ❌ Editar órdenes: DENEGADO")
+        print("    ❌ Eliminar órdenes: DENEGADO")
         print("    ✅ Ver bitácora: SOLO PROPIOS")
         
         print("\n💡 CARACTERÍSTICAS DEL SISTEMA DE MOVIMIENTOS:")
@@ -500,6 +514,7 @@ if __name__ == "__main__":
         print("  • Validación en tiempo real de datos entre órdenes y movimientos")
         print("  • Sistema de bitácora para seguimiento de cambios")
         print("  • Reenvíos automáticos con mantenimiento de relación con orden original")
+        print("  • Selección de órdenes existentes o creación de nuevas")
         
     except Exception as e:
         print(f"❌ ERROR: {e}")
