@@ -329,3 +329,33 @@ class ReporteIncidenciasForm(FiltroBaseForm):
         
         # Usar la lógica base para otros rangos
         return super().get_fechas()
+
+class ReporteOrdenesForm(FiltroBaseForm):
+    """Formulario para reportes de órdenes de despacho"""
+    
+    TIPO_REPORTE_CHOICES = [
+        ('general', 'Reporte General de Órdenes'),
+        ('por_estado', 'Órdenes por Estado'),
+        ('por_farmacia', 'Órdenes por Farmacia de Origen'),
+        ('sin_movimiento', 'Órdenes sin Movimientos Asociados'),
+    ]
+
+    tipo_reporte = forms.ChoiceField(
+        choices=TIPO_REPORTE_CHOICES,
+        initial='general',
+        label='Tipo de Reporte'
+    )
+
+    estado_orden = forms.ChoiceField(
+        choices=[],  # Se llenará en __init__
+        required=False,
+        label='Estado de la Orden'
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Importar aquí para evitar importaciones circulares
+        from apps.movimiento.models import OrdenDespacho
+        # Construir las opciones para el estado de la orden
+        estado_choices = [('', 'Todos los estados')] + list(OrdenDespacho.ESTADO_CHOICES)
+        self.fields['estado_orden'].choices = estado_choices

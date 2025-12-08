@@ -3,4 +3,6 @@
 2 - Instalar Requirements.txt (python pip install -r requeriments.txt)
 3 - Ejecutar Migraciones 
 4 - python crear_usuarios_roles.py
+4 - Ejecutar el script para crear usuarios y roles. En la terminal cmd.exe, usa:
+    python manage.py shell < crear_usuarios_roles.py
 5 - runserver

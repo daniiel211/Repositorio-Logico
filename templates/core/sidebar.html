@@ -311,7 +311,7 @@
             </li>
             {% if perms.configuracion.add_incidencia %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'configuracion:crear_incidencia' %}">
+                <a class="nav-link" href="{% url 'configuracion:reportar_incidencia' %}">
                     <i class="fas fa-plus-circle me-2"></i>
                     Crear Incidencia
                 </a>
@@ -321,7 +321,7 @@
         {% endif %}
 
         <!-- MÓDULO REPORTES Y ANALYTICS -->
-        {% if perms.reporte.view_reporte or user.is_superuser %}
+        {% if perms.reporte.view_reportegenerado or user.is_superuser %}
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span><i class="fas fa-chart-bar me-1"></i> Reportes y Analytics</span>
         </h6>
@@ -433,7 +433,7 @@
             
             <!-- Incidencias del Motorista -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'configuracion:mis_incidencias' %}">
+                <a class="nav-link" href="{% url 'configuracion:lista_incidencias' %}">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Mis Incidencias
                 </a>
@@ -462,7 +462,7 @@
             
             <!-- Enlace a Estadísticas Avanzadas - Solo con permiso -->
             {% if perms.core.view_estadisticas %}
-            <li class="nav-item">
+            <li class="nav-item" style="display: none;"> <!-- Oculto temporalmente hasta que se implemente -->
                 <a class="nav-link" href="{% url 'core:estadisticas_avanzadas' %}">
                     <i class="fas fa-chart-line me-2"></i>
                     Estadísticas Avanzadas

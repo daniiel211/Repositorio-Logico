@@ -17,7 +17,8 @@ from reportlab.lib.units import inch
 from .decorators import require_roles
 from .forms import (
     ReporteFarmaciaForm, ReporteMotoristaForm, ReporteMotoForm,
-    ReporteAsignacionForm, ReporteMovimientoForm, ReporteIncidenciasForm
+    ReporteAsignacionForm, ReporteMovimientoForm, ReporteIncidenciasForm,
+    ReporteOrdenesForm
 )
 from .models import ReporteGenerado
 
@@ -123,6 +124,24 @@ def reporte_movimiento(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor'])
+def reporte_ordenes(request):
+    """Vista para generar reportes de órdenes de despacho"""
+    if request.method == 'POST':
+        form = ReporteOrdenesForm(request.POST)
+        if form.is_valid():
+            return generar_reporte_ordenes(request, form)
+    else:
+        form = ReporteOrdenesForm()
+    
+    context = {
+        'form': form,
+        'titulo': 'Reportes de Órdenes de Despacho',
+        'modulo': 'ordenes'
+    }
+    return render(request, 'reporte/form_reporte.html', context)
+
+@login_required
+@require_roles(['gerente', 'supervisor'])
 def reporte_incidencias(request):
     """Vista para generar reportes de incidencias"""
     if request.method == 'POST':
@@ -136,6 +155,21 @@ def reporte_incidencias(request):
         'form': form,
         'titulo': 'Reportes de Incidencias',
         'modulo': 'incidencias'
+    }
+    return render(request, 'reporte/form_reporte.html', context)
+
+@login_required
+@require_roles(['gerente'])
+def reporte_gerencial(request):
+    """Vista para generar reportes de gerenciales"""
+    # This is a placeholder for your gerencial report logic.
+    # For now, it will render a simple page.
+    # You can create a specific form like ReporteGerencialForm if needed.
+    
+    context = {
+        'form': None, # Replace with your form if you create one
+        'titulo': 'Reportes Gerenciales',
+        'modulo': 'gerencial'
     }
     return render(request, 'reporte/form_reporte.html', context)
 
@@ -453,6 +487,55 @@ def generar_reporte_incidencias(request, form):
     
     return generar_documento_reporte(request, datos, titulo, 'incidencias', formato, form.cleaned_data)
 
+def generar_reporte_ordenes(request, form):
+    """Genera reporte de órdenes de despacho en PDF o Excel"""
+    from apps.movimiento.models import OrdenDespacho
+    
+    fecha_desde, fecha_hasta = form.get_fechas()
+    tipo_reporte = form.cleaned_data['tipo_reporte']
+    formato = form.cleaned_data['formato_salida']
+    
+    ordenes = OrdenDespacho.objects.all()
+    
+    # Aplicar filtros de fecha
+    if fecha_desde and fecha_hasta:
+        ordenes = ordenes.filter(
+            fecha_creacion__date__range=[fecha_desde, fecha_hasta]
+        )
+    
+    # Aplicar filtros adicionales
+    estado_orden = form.cleaned_data.get('estado_orden')
+    if estado_orden:
+        ordenes = ordenes.filter(estado=estado_orden)
+    
+    if tipo_reporte == 'por_estado':
+        datos = ordenes.values('estado').annotate(
+            total=Count('id')
+        ).order_by('-total')
+        titulo = f"Órdenes de Despacho por Estado - {fecha_desde} a {fecha_hasta}"
+        
+    elif tipo_reporte == 'por_farmacia':
+        datos = ordenes.values('farmacia_origen__nombre').annotate(
+            total=Count('id')
+        ).order_by('-total')
+        titulo = f"Órdenes de Despacho por Farmacia de Origen - {fecha_desde} a {fecha_hasta}"
+        
+    elif tipo_reporte == 'sin_movimiento':
+        datos = ordenes.filter(movimientos__isnull=True).values(
+            'numero_orden', 'cliente_nombre', 'estado', 'fecha_creacion'
+        )
+        titulo = f"Órdenes sin Movimientos Asociados - {fecha_desde} a {fecha_hasta}"
+        
+    else:  # general
+        datos = ordenes.annotate(num_movimientos=Count('movimientos')).values(
+            'numero_orden', 'cliente_nombre', 'estado',
+            'fecha_creacion', 'farmacia_origen__nombre', 'num_movimientos'
+        )
+        titulo = f"Reporte General de Órdenes de Despacho - {fecha_desde} a {fecha_hasta}"
+    
+    return generar_documento_reporte(request, datos, titulo, 'ordenes', formato, form.cleaned_data)
+
+
 def generar_documento_reporte(request, datos, titulo, modulo, formato, filtros):
     """Función central para generar documentos PDF o Excel"""
     
@@ -643,13 +726,13 @@ def generar_excel(datos, titulo, modulo, filtros):
 
 def obtener_modulos_por_rol(usuario):
     """Retorna los módulos de reporte disponibles según el rol del usuario"""
-    modulos_base = ['farmacia', 'motorista', 'moto', 'movimiento']
+    modulos_base = ['farmacia', 'motorista', 'moto', 'movimiento', 'ordenes']
     
-    if usuario.es_gerente:
+    if hasattr(usuario, 'rol') and usuario.rol == 'gerente':
         return modulos_base + ['asignacion', 'incidencias']
-    elif usuario.es_supervisor:
+    elif hasattr(usuario, 'rol') and usuario.rol == 'supervisor':
         return modulos_base + ['asignacion', 'incidencias']
-    elif usuario.es_operador:
+    elif hasattr(usuario, 'rol') and usuario.rol == 'operador':
         return modulos_base
     
     return []

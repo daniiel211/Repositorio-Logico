@@ -11,5 +11,7 @@ urlpatterns = [
     path('asignacion/', views.reporte_asignacion, name='asignacion'),
     path('movimiento/', views.reporte_movimiento, name='movimiento'),
     path('historial/', views.historial_reportes, name='historial'),
-    path('incidencias/', views.reporte_incidencias, name='incidencias')
+    path('incidencias/', views.reporte_incidencias, name='incidencias'),
+    path('ordenes/', views.reporte_ordenes, name='ordenes'),
+    path('gerencial/', views.reporte_gerencial, name='gerencial'),
 ]

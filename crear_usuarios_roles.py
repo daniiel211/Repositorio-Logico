@@ -54,6 +54,10 @@ def crear_grupos_y_permisos():
         'add_ordendespacho', 'change_ordendespacho', 'delete_ordendespacho', 'view_ordendespacho',
         # Core (acceso completo)
         'view_dashboard', 'view_estadisticas', 'change_configuracionsistema',
+        # Incidencias (acceso completo) - NUEVO
+        'add_incidencia', 'change_incidencia', 'delete_incidencia', 'view_incidencia',
+        # Reportes (acceso completo) - NUEVO
+        'view_reportegenerado', 'view_configuracionreporte',
     ]
     
     # Asignar permisos al grupo Gerente
@@ -95,6 +99,8 @@ def crear_grupos_y_permisos():
         'add_ordendespacho', 'change_ordendespacho', 'view_ordendespacho',
         # Core (vista limitada)
         'view_dashboard', 'view_estadisticas',
+        # Reportes (solo ver) - NUEVO
+        'view_reportegenerado',
     ]
     
     for perm_codename in permisos_supervisor:
@@ -134,6 +140,8 @@ def crear_grupos_y_permisos():
         'view_ordendespacho', 'add_ordendespacho',
         # Core (solo dashboard)
         'view_dashboard',
+        # Reportes (solo ver) - NUEVO
+        'view_reportegenerado',
     ]
     
     for perm_codename in permisos_operador:

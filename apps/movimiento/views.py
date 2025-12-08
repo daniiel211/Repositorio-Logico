@@ -13,6 +13,7 @@ from .forms import (
     ReenvioRapidoForm
 )
 from apps.asignacion.models import AsignacionFarmacia
+from apps.usuario.models import Usuario # Importar el modelo Usuario
 from apps.motorista.models import Motorista
 
 
@@ -24,12 +25,12 @@ def dashboard_movimientos(request):
     """
     # Si es motorista, solo muestra sus movimientos
     if hasattr(request.user, 'es_motorista') and request.user.es_motorista:
-        total_movimientos = Movimiento.objects.filter(rutMotorista=request.user.motorista).count()
+        total_movimientos = Movimiento.objects.filter(rutMotorista__usuario=request.user).count()
         movimientos_por_estado_raw = Movimiento.objects.filter(
-            rutMotorista=request.user.motorista
+            rutMotorista__usuario=request.user
         ).values('estado').annotate(total=Count('estado')).order_by('-total')
         ultimos_movimientos = Movimiento.objects.filter(
-            rutMotorista=request.user.motorista
+            rutMotorista__usuario=request.user
         ).select_related('rutMotorista', 'idFarmaciaOrigen').order_by('-fechaCreacion')[:10]
     else:
         total_movimientos = Movimiento.objects.count()
@@ -91,7 +92,7 @@ class MovimientoListView(LoginRequiredMixin, ListView):
         # Si es motorista, solo muestra sus movimientos
         if hasattr(self.request.user, 'es_motorista') and self.request.user.es_motorista:
             queryset = Movimiento.objects.filter(
-                rutMotorista=self.request.user.motorista
+                rutMotorista__usuario=self.request.user
             ).select_related('rutMotorista', 'idFarmaciaOrigen', 'orden_despacho').order_by('-fechaCreacion')
         else:
             queryset = Movimiento.objects.select_related(
@@ -201,7 +202,22 @@ class OrdenDespachoDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        orden = self.get_object()
+        
+        # Realizar cálculos de movimientos en la vista
+        movimientos_totales = orden.movimientos.count()
+        movimientos_entregados = orden.movimientos.filter(estado='entregado').count()
+        movimientos_pendientes = movimientos_totales - movimientos_entregados
+        if movimientos_totales > 0:
+            porcentaje_completado = (movimientos_entregados / movimientos_totales) * 100
+        else:
+            porcentaje_completado = 0
+        
         context['titulo'] = f'Detalle Orden #{self.object.numero_orden}'
+        context['movimientos_totales'] = movimientos_totales
+        context['movimientos_entregados'] = movimientos_entregados
+        context['movimientos_pendientes'] = movimientos_pendientes
+        context['porcentaje_completado'] = porcentaje_completado
         return context
 
 
@@ -217,7 +233,7 @@ def movimiento_detalle(request, pk):
         movimiento = get_object_or_404(
             Movimiento.objects.select_related(
                 'rutMotorista', 'idFarmaciaOrigen', 'idFarmaciaDestino', 'autorizadoPor', 'orden_despacho',
-                'directo', 'receta', 'traslado', 'reenvio'
+                'directo', 'receta', 'traslado', 'reenvio', 'incidencias' # Añadir incidencias
             ).prefetch_related('bitacora__usuario'),
             pk=pk,
             rutMotorista=request.user.motorista
@@ -226,7 +242,7 @@ def movimiento_detalle(request, pk):
         movimiento = get_object_or_404(
             Movimiento.objects.select_related(
                 'rutMotorista', 'idFarmaciaOrigen', 'idFarmaciaDestino', 'autorizadoPor', 'orden_despacho',
-                'directo', 'receta', 'traslado', 'reenvio'
+                'directo', 'receta', 'traslado', 'reenvio', 'incidencias' # Añadir incidencias
             ).prefetch_related('bitacora__usuario'),
             pk=pk
         )
@@ -253,8 +269,8 @@ def cambiar_estado_movimiento(request, pk):
     if hasattr(request.user, 'es_motorista') and request.user.es_motorista:
         movimiento = get_object_or_404(
             Movimiento, 
-            pk=pk, 
-            rutMotorista=request.user.motorista
+            pk=pk,
+            rutMotorista__usuario=request.user
         )
     else:
         movimiento = get_object_or_404(Movimiento, pk=pk)

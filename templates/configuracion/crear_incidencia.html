@@ -1,0 +1,29 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Crear Incidencia{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title mb-0"><i class="fas fa-plus-circle me-2"></i>Registrar Nueva Incidencia</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-text">Utilice el siguiente formulario para reportar una nueva incidencia. Proporcione todos los detalles posibles.</p>
+            
+            <!-- Formulario de creación de incidencia -->
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <!-- Asumiendo que hay un formulario 'form' pasado desde la vista -->
+                {{ form.as_p }}
+
+                <hr>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Guardar Incidencia</button>
+                <a href="{% url 'configuracion:lista_incidencias' %}" class="btn btn-secondary"><i class="fas fa-times me-2"></i>Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -11,6 +11,7 @@ class ConfiguracionReporte(models.Model):
         ('moto', 'Motos'),
         ('asignacion', 'Asignaciones'),
         ('movimiento', 'Movimientos'),
+        ('ordenes', 'Órdenes de Despacho'),
     ]
     
     FORMATO_CHOICES = [
@@ -64,6 +65,10 @@ class ReporteGenerado(models.Model):
         db_table = 'reporte_generado'
         verbose_name = 'Reporte Generado'
         verbose_name_plural = 'Reportes Generados'
+        permissions = [
+            ("view_reporte", "Puede ver reportes"),
+            ("view_reporte_gerencial", "Puede ver reportes gerenciales"),
+        ]
         ordering = ['-fecha_generacion']
 
     def __str__(self):
