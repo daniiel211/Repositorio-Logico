@@ -1,11 +1,14 @@
+# apps/usuario/views.py - ARCHIVO COMPLETO Y ACTUALIZADO
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, update_session_auth_hash
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
+from django.utils import timezone
 
 from .decorators import require_roles, require_permission, can_edit_user
 from .forms import LoginForm, UsuarioCreateForm, UsuarioUpdateForm, PasswordChangeCustomForm
@@ -16,7 +19,7 @@ def login_view(request):
     Vista personalizada para inicio de sesión.
     """
     if request.user.is_authenticated:
-        return redirect('usuario:dashboard')
+        return redirect('core:dashboard')  # Dashboard principal
 
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -27,7 +30,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Bienvenido/a {user.get_full_name()}')
-                return redirect('usuario:dashboard')
+                return redirect('core:dashboard')  # Dashboard principal
             else:
                 messages.error(request, 'Nombre de usuario o contraseña incorrectos')
         else:
@@ -38,9 +41,76 @@ def login_view(request):
     return render(request, 'usuario/login.html', {'form': form})
 
 @login_required
+def dashboard_usuario(request):
+    """
+    DASHBOARD ESPECÍFICO DE GESTIÓN DE USUARIOS
+    Esta vista es a la que se accede desde el sidebar > "Gestión de Usuarios"
+    Muestra diferentes funcionalidades según el rol del usuario
+    """
+    user = request.user
+    context = {}
+    
+    # 1. PARA GERENTE: Acceso completo a todas las funcionalidades
+    if user.es_gerente or user.is_superuser:
+        context['puede_ver_lista'] = True
+        context['puede_crear'] = True
+        context['puede_editar'] = True
+        context['puede_desactivar'] = True
+        context['titulo'] = 'Dashboard Usuarios - Gerente'
+        
+        # Métricas para gerente
+        total_usuarios = Usuario.objects.count()
+        usuarios_activos = Usuario.objects.filter(is_active=True).count()
+        context['total_usuarios'] = total_usuarios
+        context['usuarios_activos'] = usuarios_activos
+        
+    # 2. PARA SUPERVISOR: Puede crear y editar, pero no eliminar gerentes
+    elif user.es_supervisor:
+        context['puede_ver_lista'] = True
+        context['puede_crear'] = user.has_perm('usuario.add_usuario')
+        context['puede_editar'] = user.has_perm('usuario.change_usuario')
+        context['puede_desactivar'] = user.has_perm('usuario.change_usuario')
+        context['titulo'] = 'Dashboard Usuarios - Supervisor'
+        
+        # Métricas para supervisor
+        usuarios_activos = Usuario.objects.filter(is_active=True).exclude(rol='gerente').count()
+        context['usuarios_activos'] = usuarios_activos
+        
+    # 3. PARA OPERADOR: Solo lectura, no puede modificar
+    elif user.es_operador:
+        context['puede_ver_lista'] = user.has_perm('usuario.view_usuario')
+        context['puede_crear'] = False
+        context['puede_editar'] = False
+        context['puede_desactivar'] = False
+        context['titulo'] = 'Dashboard Usuarios - Operador'
+        
+        # Operador solo ve usuarios activos
+        usuarios_activos = Usuario.objects.filter(is_active=True).count()
+        context['usuarios_activos'] = usuarios_activos
+        
+    # 4. PARA MOTORISTA: Solo puede ver su perfil y cambiar contraseña
+    elif user.es_motorista:
+        context['puede_ver_lista'] = False  # Motorista NO ve lista de usuarios
+        context['puede_crear'] = False
+        context['puede_editar'] = False
+        context['puede_desactivar'] = False
+        context['es_motorista'] = True
+        context['titulo'] = 'Mi Perfil - Motorista'
+        
+        # Motorista solo ve su propia información
+        context['usuario_actual'] = user
+        
+    else:
+        context['titulo'] = 'Dashboard Usuarios'
+    
+    return render(request, 'usuario/dashboard_usuario.html', context)
+
+# VISTA ORIGINAL DASHBOARD (mantenida por compatibilidad)
+@login_required
 def dashboard(request):
     """
-    Dashboard principal con redirección por rol.
+    Vista original dashboard - Mantenida por compatibilidad
+    Redirige al dashboard principal del core
     """
     user = request.user
     
@@ -48,12 +118,6 @@ def dashboard(request):
     from apps.farmacia.models import Farmacia
     from apps.motorista.models import Motorista
     from apps.moto.models import Moto
-    from apps.movimiento.models import Movimiento
-    from apps.asignacion.models import AsignacionMoto, AsignacionFarmacia
-    from apps.configuracion.models import IncidenciaMovimiento
-    from django.utils import timezone
-    from datetime import timedelta
-    from django.db.models import Q, Count
 
     if user.es_gerente or user.is_superuser:
         # Lógica para dashboard gerente
@@ -83,6 +147,7 @@ def dashboard(request):
         
     elif user.es_supervisor:
         # Lógica para dashboard supervisor
+        from apps.movimiento.models import Movimiento
         movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
         total_motoristas = Motorista.objects.filter(activo=True).count()
         
@@ -94,6 +159,7 @@ def dashboard(request):
         
     elif user.es_operador:
         # Lógica para dashboard operador
+        from apps.movimiento.models import Movimiento
         hoy = timezone.now().date()
         movimientos_pendientes = Movimiento.objects.filter(estado='pendiente').count()
         movimientos_hoy = Movimiento.objects.filter(fechaCreacion__date=hoy).count()
@@ -107,6 +173,7 @@ def dashboard(request):
     elif user.es_motorista:
         # Lógica para dashboard motorista
         from apps.motorista.models import Motorista
+        from apps.movimiento.models import Movimiento
         
         try:
             motorista = Motorista.objects.get(rut=user.rut)
@@ -135,6 +202,8 @@ def dashboard(request):
         
     else:
         return render(request, 'usuario/base_dashboard.html')
+
+# VISTAS DE GESTIÓN DE USUARIOS (CRUD)
 
 class UsuarioListView(PermissionRequiredMixin, ListView):
     """
@@ -188,12 +257,13 @@ class UsuarioListView(PermissionRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
 @login_required
-@require_permission('usuario.add_usuario')
+@permission_required('usuario.add_usuario', raise_exception=True)
 def crear_usuario(request):
     """
-    Crear nuevo usuario en el sistema.
+    Crear nuevo usuario - Solo usuarios con permiso add_usuario
+    Operadores y motoristas NO tienen acceso
     """
-    # Operadores y motoristas no pueden crear usuarios
+    # Validación adicional por rol
     if request.user.es_operador or request.user.es_motorista:
         raise PermissionDenied("No tienes permisos para crear usuarios")
     
@@ -211,20 +281,15 @@ def crear_usuario(request):
     return render(request, 'usuario/crear_usuario.html', {'form': form})
 
 @login_required
-@can_edit_user()
+@can_edit_user()  # Usa decorador personalizado con lógica compleja
 def editar_usuario(request, usuario_id):
     """
-    Editar usuario existente con validaciones de permisos.
+    Editar usuario - Control granular con decorador personalizado
+    Motoristas solo pueden editar su propio perfil
+    Operadores solo pueden editar su propio perfil
     """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
-    # Validaciones adicionales de permisos
-    if request.user.es_operador and usuario != request.user:
-        raise PermissionDenied("Los operadores solo pueden editar su propio perfil")
-    
-    if request.user.es_motorista and usuario != request.user:
-        raise PermissionDenied("Los motoristas solo pueden editar su propio perfil")
-
     if request.method == 'POST':
         form = UsuarioUpdateForm(request.POST, instance=usuario)
         if form.is_valid():
@@ -255,10 +320,12 @@ def editar_usuario(request, usuario_id):
     return render(request, 'usuario/editar_usuario.html', context)
 
 @login_required
-@require_permission('usuario.change_usuario')
+@permission_required('usuario.change_usuario', raise_exception=True)
 def desactivar_usuario(request, usuario_id):
     """
     Desactivar usuario (soft delete).
+    Solo usuarios con permiso change_usuario pueden desactivar
+    Operadores y motoristas NO tienen acceso
     """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -280,10 +347,12 @@ def desactivar_usuario(request, usuario_id):
     return render(request, 'usuario/confirmar_desactivar.html', {'usuario': usuario})
 
 @login_required
-@require_permission('usuario.change_usuario')
+@permission_required('usuario.change_usuario', raise_exception=True)
 def activar_usuario(request, usuario_id):
     """
     Activar usuario previamente desactivado.
+    Solo usuarios con permiso change_usuario pueden activar
+    Operadores y motoristas NO tienen acceso
     """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -302,8 +371,8 @@ def activar_usuario(request, usuario_id):
 @login_required
 def perfil_usuario(request):
     """
-    Perfil del usuario actual.
-    Accesible para todos los usuarios autenticados.
+    Perfil del usuario actual - Accesible para TODOS los usuarios
+    Incluye motoristas
     """
     usuario = request.user
 
@@ -328,8 +397,8 @@ def perfil_usuario(request):
 @login_required
 def cambiar_password(request):
     """
-    Cambiar contraseña del usuario actual.
-    Accesible para todos los usuarios autenticados.
+    Cambiar contraseña - Accesible para TODOS los usuarios
+    Incluye motoristas
     """
     if request.method == 'POST':
         form = PasswordChangeCustomForm(request.user, request.POST)
@@ -346,10 +415,12 @@ def cambiar_password(request):
     return render(request, 'usuario/cambiar_password.html', {'form': form})
 
 @login_required
-@require_permission('usuario.view_usuario')
+@permission_required('usuario.view_usuario', raise_exception=True)
 def detalle_usuario(request, usuario_id):
     """
     Ver detalles de un usuario específico.
+    Solo usuarios con permiso view_usuario pueden ver detalles
+    Motoristas solo pueden ver su propio perfil
     """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     

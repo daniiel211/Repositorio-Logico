@@ -1,30 +1,22 @@
+<!-- templates/core/dashboard.html - VERSIÓN CORREGIDA -->
 {% extends 'core/base.html' %}
+{% load static %}
 
-{% block title %}{{ titulo }} - LogiCo{% endblock %}
+{% block title %}Dashboard Principal - LogiCo{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <!-- Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+        <h1 class="h3 mb-0 text-gray-800">Dashboard Principal</h1>
         
-        <!-- Botón condicional según permisos -->
-        {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
-        <a href="{% url 'asignacion:dashboard' %}" class="btn btn-primary btn-icon-split">
-            <span class="icon text-white-50">
-                <i class="fas fa-tasks"></i>
-            </span>
-            <span class="text">Módulo Asignaciones</span>
-        </a>
-        {% endif %}
+        <!-- Información del usuario -->
+        <div class="text-muted">
+            <small>Usuario: {{ user.get_full_name|default:user.username }}</small>
+            <span class="mx-2">|</span>
+            <small>Rol: {{ user.get_rol_display }}</small>
+        </div>
     </div>
-
-    {% if error %}
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i> 
-        Algunos datos no pudieron cargarse: {{ error }}
-    </div>
-    {% endif %}
 
     <!-- Statistics Cards -->
     <div class="row">
@@ -35,8 +27,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Farmacias Activas</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_farmacias }}</div>
+                                Farmacias
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_farmacias|default:"0" }}</div>
+                            <div class="text-xs text-muted">Activas</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clinic-medical fa-2x text-gray-300"></i>
@@ -53,8 +47,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Motoristas Activos</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motoristas }}</div>
+                                Motoristas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motoristas|default:"0" }}</div>
+                            <div class="text-xs text-muted">Activos</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -71,8 +67,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Motos Activas</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motos }}</div>
+                                Motos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_motos|default:"0" }}</div>
+                            <div class="text-xs text-muted">Activas</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-motorcycle fa-2x text-gray-300"></i>
@@ -82,45 +80,17 @@
             </div>
         </div>
 
-        <!-- Asignaciones Activas -->
+        <!-- Usuarios Activos -->
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Asignaciones Activas</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ asignaciones_moto_activas }} Moto / {{ asignaciones_farmacia_activas }} Farmacia
+                                Usuarios
                             </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-link fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Additional Stats -->
-    <div class="row">
-        <!-- Motoristas con Moto -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-secondary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                Motoristas con Moto</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_moto|default:0 }}</div>
-                            <div class="text-xs text-muted">
-                                {% if total_motoristas > 0 %}
-                                {{ motoristas_con_moto|default:0 }} de {{ total_motoristas }} ({{ motoristas_con_moto|default:0|floatformat:0 }}%)
-                                {% else %}
-                                0 de 0 (0%)
-                                {% endif %}
-                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_usuarios|default:"0" }}</div>
+                            <div class="text-xs text-muted">Activos</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-user-check fa-2x text-gray-300"></i>
@@ -129,108 +99,52 @@
                 </div>
             </div>
         </div>
-
-        <!-- Motoristas en Farmacia -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-dark shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
-                                Motoristas en Farmacia</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ motoristas_con_farmacia|default:0 }}</div>
-                            <div class="text-xs text-muted">
-                                {% if total_motoristas > 0 %}
-                                {{ motoristas_con_farmacia|default:0 }} de {{ total_motoristas }} ({{ motoristas_con_farmacia|default:0|floatformat:0 }}%)
-                                {% else %}
-                                0 de 0 (0%)
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Eficiencia -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Tasa de Cobertura</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if total_farmacias > 0 and motoristas_con_farmacia > 0 %}
-                                {{ motoristas_con_farmacia|default:0 }}:{{ total_farmacias }}
-                                {% else %}
-                                0:1
-                                {% endif %}
-                            </div>
-                            <div class="text-xs text-muted">
-                                Motoristas por farmacia
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Quick Actions - Solo para usuarios con permisos -->
-    {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
-    <div class="row mb-4">
+    <!-- Acciones Rápidas -->
+    <div class="row mt-4">
         <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas - Módulo Asignaciones</h6>
-                    
-                    <!-- Botón de estadísticas solo para usuarios autorizados -->
-                    {% if perms.core.view_estadisticas %}
-                    <a href="{% url 'core:estadisticas_avanzadas' %}" class="btn btn-info btn-sm">
-                        <i class="fas fa-chart-bar"></i> Ver Estadísticas Avanzadas
-                    </a>
-                    {% endif %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <!-- Asignaciones de Motos - Solo para usuarios con permisos -->
-                        {% if perms.asignacion.add_asignacionmoto %}
-                        <div class="col-md-6 mb-3">
-                            <h6 class="font-weight-bold text-primary">Asignaciones de Motos</h6>
-                            <a href="{% url 'asignacion:crear_moto' %}" class="btn btn-outline-primary btn-sm mb-2">
-                                <i class="fas fa-plus"></i> Nueva Asignación
+                        <!-- Gestión de Usuarios -->
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'usuario:dashboard_usuario' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-users mr-2"></i>
+                                Usuarios
                             </a>
-                            <a href="{% url 'asignacion:listar_motos' %}" class="btn btn-outline-secondary btn-sm mb-2">
-                                <i class="fas fa-list"></i> Ver Todas
+                        </div>
+                        
+                        <!-- Gestión de Farmacias -->
+                        {% if perms.farmacia.view_farmacia %}
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'farmacia:dashboard' %}" class="btn btn-success w-100">
+                                <i class="fas fa-clinic-medical mr-2"></i>
+                                Farmacias
                             </a>
-                            <p class="small text-muted mt-2">
-                                <i class="fas fa-info-circle"></i>
-                                {{ asignaciones_moto_activas }} asignaciones activas
-                            </p>
                         </div>
                         {% endif %}
                         
-                        <!-- Asignaciones de Farmacias - Solo para usuarios con permisos -->
-                        {% if perms.asignacion.add_asignacionfarmacia %}
-                        <div class="col-md-6 mb-3">
-                            <h6 class="font-weight-bold text-success">Asignaciones de Farmacias</h6>
-                            <a href="{% url 'asignacion:crear_farmacia' %}" class="btn btn-outline-success btn-sm mb-2">
-                                <i class="fas fa-plus"></i> Nueva Asignación
+                        <!-- Gestión de Movimientos -->
+                        {% if perms.movimiento.view_movimiento %}
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'movimiento:dashboard' %}" class="btn btn-info w-100">
+                                <i class="fas fa-shipping-fast mr-2"></i>
+                                Movimientos
                             </a>
-                            <a href="{% url 'asignacion:listar_farmacias' %}" class="btn btn-outline-secondary btn-sm mb-2">
-                                <i class="fas fa-list"></i> Ver Todas
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Gestión de Reportes -->
+                        {% if perms.reporte.view_reportegenerado %}
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'reporte:dashboard' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Reportes
                             </a>
-                            <p class="small text-muted mt-2">
-                                <i class="fas fa-info-circle"></i>
-                                {{ asignaciones_farmacia_activas }} asignaciones activas
-                            </p>
                         </div>
                         {% endif %}
                     </div>
@@ -238,225 +152,239 @@
             </div>
         </div>
     </div>
-    {% endif %}
 
-    <!-- Configuración del Sistema - Solo para Gerentes -->
-    {% if perms.core.change_configuracionsistema %}
-    <div class="row mb-4">
+    <!-- Información por Rol -->
+    <div class="row">
         <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-danger">
-                        <i class="fas fa-cogs"></i> Configuración del Sistema
-                    </h6>
-                </div>
+            <div class="card shadow mb-4">
                 <div class="card-body">
-                    <p class="card-text">
-                        Acceda a la configuración avanzada del sistema para modificar parámetros globales.
+                    {% if user.es_gerente or user.is_superuser %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-user-shield"></i>
+                        <strong>Rol: Gerente</strong> - Tienes acceso completo a todas las funcionalidades del sistema.
+                    </div>
+                    {% elif user.es_supervisor %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-user-tie"></i>
+                        <strong>Rol: Supervisor</strong> - Puedes gestionar operaciones y supervisar el personal.
+                    </div>
+                    {% elif user.es_operador %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-user-cog"></i>
+                        <strong>Rol: Operador</strong> - Puedes registrar movimientos y gestionar operaciones básicas.
+                    </div>
+                    {% elif user.es_motorista %}
+                    <div class="alert alert-primary">
+                        <i class="fas fa-motorcycle"></i>
+                        <strong>Rol: Motorista</strong> - Puedes ver tus entregas asignadas y reportar incidencias.
+                    </div>
+                    {% endif %}
+                    
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        Usa el menú lateral para acceder a todos los módulos disponibles para tu rol.
                     </p>
-                    <a href="{% url 'core:configuracion_sistema' %}" class="btn btn-danger">
-                        <i class="fas fa-sliders-h"></i> Ir a Configuración
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Mensaje para usuarios con permisos limitados -->
-    {% if not perms.asignacion.add_asignacionmoto and not perms.asignacion.add_asignacionfarmacia and not perms.core.change_configuracionsistema %}
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-info">
-                <h6><i class="fas fa-info-circle"></i> Información</h6>
-                <p class="mb-0">
-                    Su rol actual tiene permisos de visualización. Contacte al administrador del sistema 
-                    si necesita acceso a funcionalidades adicionales.
-                </p>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Recent Activity -->
-    <div class="row">
-        <!-- Recent Moto Assignments -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Últimas Asignaciones de Motos</h6>
-                </div>
-                <div class="card-body">
-                    {% if ultimas_asignaciones_moto %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Motorista</th>
-                                    <th>Moto</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for asignacion in ultimas_asignaciones_moto %}
-                                <tr>
-                                    <td>
-                                        <small>{{ asignacion.motorista.nombre_completo }}</small><br>
-                                        <span class="text-muted smaller">{{ asignacion.motorista.rut }}</span>
-                                    </td>
-                                    <td>
-                                        <small>{{ asignacion.moto.patente }}</small><br>
-                                        <span class="text-muted smaller">{{ asignacion.moto.marca }}</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ asignacion.estado|lower }}">
-                                            {{ asignacion.estado }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <small>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</small>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center">No hay asignaciones recientes</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Pharmacy Assignments -->
-        <div class="col-xl-6 col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Últimas Asignaciones de Farmacias</h6>
-                </div>
-                <div class="card-body">
-                    {% if ultimas_asignaciones_farmacia %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-sm" width="100%" cellspacing="0">
-                            <thead>
-                                <tr>
-                                    <th>Motorista</th>
-                                    <th>Farmacia</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for asignacion in ultimas_asignaciones_farmacia %}
-                                <tr>
-                                    <td>
-                                        <small>{{ asignacion.motorista.nombre_completo }}</small><br>
-                                        <span class="text-muted smaller">{{ asignacion.motorista.rut }}</span>
-                                    </td>
-                                    <td>
-                                        <small>{{ asignacion.farmacia.nombre }}</small><br>
-                                        <span class="text-muted smaller">{{ asignacion.farmacia.comuna }}</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ asignacion.estado|lower }}">
-                                            {{ asignacion.estado }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <small>{{ asignacion.fecha_asignacion|date:"d/m/Y" }}</small>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center">No hay asignaciones recientes</p>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top Pharmacies -->
-    {% if farmacias_top %}
+    <!-- Para Gerentes: Estadísticas Adicionales -->
+    {% if user.es_gerente or user.is_superuser %}
     <div class="row">
         <div class="col-12">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Farmacias con Más Motoristas</h6>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas para Gerentes</h6>
+                    <span class="badge bg-primary">Exclusivo</span>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% for farmacia in farmacias_top %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-left-info">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ farmacia.nombre }}</h6>
-                                    <p class="card-text">
-                                        <small class="text-muted">{{ farmacia.direccion }}</small><br>
-                                        <span class="badge bg-primary">{{ farmacia.num_motoristas }} motorista(s)</span>
-                                    </p>
-                                </div>
+                        <div class="col-md-4">
+                            <h6 class="text-gray-700">Resumen del Sistema</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check-circle text-success"></i> Sistema operativo</li>
+                                <li><i class="fas fa-database text-info"></i> Base de datos activa</li>
+                                <li><i class="fas fa-users text-primary"></i> {{ total_usuarios|default:"0" }} usuarios</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-gray-700">Operaciones</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-clinic-medical text-success"></i> {{ total_farmacias|default:"0" }} farmacias</li>
+                                <li><i class="fas fa-user-tie text-info"></i> {{ total_motoristas|default:"0" }} motoristas</li>
+                                <li><i class="fas fa-motorcycle text-warning"></i> {{ total_motos|default:"0" }} motos</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-gray-700">Acciones Disponibles</h6>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'core:configuracion_sistema' %}" class="btn btn-sm btn-outline-primary">
+                                    Configuración
+                                </a>
+                                <a href="{% url 'core:estadisticas' %}" class="btn btn-sm btn-outline-info">
+                                    Estadísticas
+                                </a>
+                                <a href="{% url 'reporte:dashboard' %}" class="btn btn-sm btn-outline-success">
+                                    Reportes
+                                </a>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
     {% endif %}
+
+    <!-- Para Motoristas: Información Específica -->
+    {% if user.es_motorista %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información para Motoristas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-gray-700">Tus Funcionalidades</h6>
+                            <ul>
+                                <li>Ver movimientos asignados</li>
+                                <li>Reportar incidencias</li>
+                                <li>Actualizar estado de entregas</li>
+                                <li>Ver información de contacto</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-gray-700">Acciones Disponibles</h6>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'movimiento:dashboard' %}" class="btn btn-primary">
+                                    Mis Movimientos
+                                </a>
+                                <a href="{% url 'configuracion:dashboard' %}" class="btn btn-warning">
+                                    Mis Incidencias
+                                </a>
+                                <a href="{% url 'usuario:perfil' %}" class="btn btn-info">
+                                    Mi Perfil
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Información del Sistema -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-secondary">Información del Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <i class="fas fa-truck-fast text-primary"></i>
+                                <strong>LogiCo</strong> - Sistema de Gestión Logística
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-building text-info"></i>
+                                Cliente: <strong>Discopro Ltda.</strong>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-hospital text-success"></i>
+                                Destino: <strong>Cruz Verde</strong>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1">
+                                <i class="fas fa-code text-secondary"></i>
+                                Versión: <strong>1.0.0</strong>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-calendar-alt text-warning"></i>
+                                Fecha: <strong>{% now "d/m/Y" %}</strong>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-clock text-danger"></i>
+                                Hora: <strong><span id="hora-actual">{% now "H:i" %}</span></strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    $(document).ready(function() {
-        // Determinar si el usuario tiene permisos de supervisión
-        // Usando una variable JavaScript generada por Django
-        var tienePermisosSupervision = {% if perms.core.view_estadisticas or user.es_supervisor or user.es_gerente %}true{% else %}false{% endif %};
+// SOLUCIÓN AL ERROR: Se debe usar JSON para pasar datos de Django a JavaScript
+// La línea problemática era: var tienePermisosSupervision = {% if perms.core.view_estadisticas or user.es_supervisor or user.es_gerente %}true{% else %}false{% endif %};
+
+// En su lugar, usamos un atributo data-* en el HTML
+$(document).ready(function() {
+    // Obtener permisos del atributo data
+    var tienePermisosSupervision = $('#user-permissions').data('supervision') || false;
+    
+    if (tienePermisosSupervision) {
+        console.log('Usuario con permisos de supervisión - Actualización automática activada');
         
-        if (tienePermisosSupervision) {
-            console.log('Usuario con permisos de supervisión - Actualización automática activada');
-            
-            // Actualizar datos cada 60 segundos
-            setInterval(function() {
-                console.log('Actualizando dashboard automáticamente...');
-                location.reload();
-            }, 60000);
-        } else {
-            console.log('Usuario sin permisos de supervisión - Actualización automática desactivada');
+        // Actualizar datos cada 60 segundos (solo para supervisores y gerentes)
+        setInterval(function() {
+            console.log('Actualizando dashboard automáticamente...');
+            // Podrías usar AJAX en lugar de recargar toda la página
+            // location.reload();
+        }, 60000);
+    } else {
+        console.log('Usuario sin permisos de supervisión - Actualización automática desactivada');
+    }
+
+    // Efecto hover para tarjetas
+    $('.card').hover(
+        function() {
+            $(this).addClass('shadow-lg');
+            $(this).css('transition', 'all 0.3s ease');
+        },
+        function() {
+            $(this).removeClass('shadow-lg');
         }
+    );
 
-        // Funcionalidad adicional para el dashboard
-        $('.card').hover(
-            function() {
-                $(this).addClass('shadow-lg');
-            },
-            function() {
-                $(this).removeClass('shadow-lg');
-            }
-        );
+    // Tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
 
-        // Tooltips para elementos informativos
-        $('[data-bs-toggle="tooltip"]').tooltip();
+    // Actualizar hora cada minuto
+    function actualizarHora() {
+        var ahora = new Date();
+        var hora = ahora.getHours().toString().padStart(2, '0');
+        var minutos = ahora.getMinutes().toString().padStart(2, '0');
+        $('#hora-actual').text(hora + ':' + minutos);
+    }
 
-        // Actualizar hora actual cada minuto
-        function actualizarHora() {
-            var ahora = new Date();
-            var hora = ahora.toLocaleTimeString('es-CL');
-            $('#hora-actual').text('Hora actual: ' + hora);
+    // Actualizar cada minuto
+    setInterval(actualizarHora, 60000);
+    
+    // Animación para botones de acciones rápidas
+    $('.btn').hover(
+        function() {
+            $(this).css('transform', 'translateY(-2px)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0)');
         }
-
-        // Crear elemento para mostrar la hora si no existe
-        if ($('#hora-actual').length === 0) {
-            $('<div id="hora-actual" class="text-muted small text-end mb-2"></div>').insertBefore('.d-sm-flex');
-        }
-
-        actualizarHora();
-        setInterval(actualizarHora, 60000);
-    });
+    );
+});
 </script>
+
+<!-- Elemento oculto para pasar datos de Django a JavaScript -->
+<div id="user-permissions" 
+     data-supervision="{% if perms.core.view_estadisticas or user.es_supervisor or user.es_gerente %}true{% else %}false{% endif %}"
+     style="display: none;">
+</div>
 {% endblock %}

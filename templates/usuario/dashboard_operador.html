@@ -1,3 +1,4 @@
+<!-- templates/usuario/dashboard_operador.html - CORREGIDO -->
 {% extends 'core/base.html' %}
 
 {% block title %}Dashboard - Operador{% endblock %}
@@ -15,7 +16,7 @@
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                             Movimientos Pendientes
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ movimientos_pendientes }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-clock fa-2x text-gray-300"></i>
@@ -33,7 +34,7 @@
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                             Movimientos Hoy
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ movimientos_hoy }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-shipping-fast fa-2x text-gray-300"></i>
@@ -51,7 +52,7 @@
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                             Incidencias Activas
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidencias_activas }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
@@ -74,7 +75,6 @@
                     <div class="col-md-4 mb-3">
                         <div class="dropdown">
                             <button class="btn btn-primary w-100 py-3 dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-plus-circle fa-2x mb-2"></i><br>
                                 Registrar Movimiento
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -86,13 +86,11 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <a href="{% url 'movimiento:list' %}" class="btn btn-success w-100 py-3">
-                            <i class="fas fa-list fa-2x mb-2"></i><br>
                             Ver Movimientos
                         </a>
                     </div>
                     <div class="col-md-4 mb-3">
                         <a href="#" class="btn btn-warning w-100 py-3 disabled" aria-disabled="true">
-                            <i class="fas fa-map-marker-alt fa-2x mb-2"></i><br>
                             Seguimiento
                         </a>
                     </div>

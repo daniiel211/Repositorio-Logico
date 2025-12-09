@@ -1,3 +1,4 @@
+<!-- templates/usuario/dashboard_motorista.html - CORREGIDO -->
 {% extends 'core/base.html' %}
 
 {% block title %}Dashboard - Motorista{% endblock %}
@@ -5,11 +6,13 @@
 {% block page_title %}Dashboard Motorista{% endblock %}
 
 {% block content %}
+<!-- El if estaba mal cerrado en el template original -->
 {% if error %}
 <div class="alert alert-danger" role="alert">
     {{ error }}
 </div>
 {% else %}
+<!-- El resto del contenido del motorista -->
 
 <!-- Información Personal -->
 <div class="row mb-4">
@@ -315,7 +318,7 @@
     </div>
 </div>
 
-{% endif %}
+{% endif %} <!-- IMPORTANTE: Cierre del if-else principal -->
 {% endblock %}
 
 {% block extra_js %}

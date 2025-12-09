@@ -1,451 +1,136 @@
-<!-- templates/core/sidebar.html -->
+<!-- templates/core/sidebar.html - VERSIÓN SIMPLIFICADA CON ICONOS -->
 <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
     <div class="position-sticky pt-3">
         
-        <!-- MÓDULO ADMINISTRACIÓN -->
-        {% if perms.usuario.view_usuario or user.is_superuser %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-cogs me-1"></i> Administración</span>
-        </h6>
+        <!-- LOGO Y NOMBRE DEL SISTEMA -->
+        <div class="text-center mb-4">
+            <div class="sidebar-brand-icon">
+                <i class="fas fa-truck-fast fa-2x text-primary"></i>
+            </div>
+            <div class="sidebar-brand-text mt-2">
+                <small class="font-weight-bold text-dark">LOGO</small>
+            </div>
+        </div>
+        
+        <!-- MÓDULO USUARIOS (Siempre visible para autenticados) -->
+        {% if user.is_authenticated %}
         <ul class="nav flex-column mb-2">
-            <!-- Dashboard Usuarios -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'usuario:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Usuarios
+                <a class="nav-link" href="{% url 'usuario:dashboard_usuario' %}">
+                    <i class="fas fa-users me-2"></i>
+                    Usuarios
                 </a>
             </li>
-            
-            <!-- Lista de Usuarios -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'usuario:lista_usuarios' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Usuarios
-                    {% if not perms.usuario.add_usuario and not perms.usuario.change_usuario %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            
-            <!-- Crear Usuario -->
-            {% if perms.usuario.add_usuario %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'usuario:crear_usuario' %}">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Usuario
-                </a>
-            </li>
-            {% endif %}
-            
-            <!-- Configuración del Sistema - Solo Gerente -->
-            {% if perms.core.change_configuracionsistema %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'core:configuracion_sistema' %}">
-                    <i class="fas fa-sliders-h me-2"></i>
-                    Configuración Sistema
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO GESTIÓN DE FARMACIAS -->
+        
+        <!-- MÓDULO FARMACIAS -->
         {% if perms.farmacia.view_farmacia %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-clinic-medical me-1"></i> Gestión de Farmacias</span>
-        </h6>
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'farmacia:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Farmacias
+                    <i class="fas fa-clinic-medical me-2"></i>
+                    Farmacias
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'farmacia:list' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Farmacias
-                    {% if not perms.farmacia.add_farmacia and not perms.farmacia.change_farmacia %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            {% if perms.farmacia.add_farmacia %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'farmacia:create' %}">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Farmacia
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO GESTIÓN DE MOTOS -->
+        
+        <!-- MÓDULO MOTOS -->
         {% if perms.moto.view_moto %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-motorcycle me-1"></i> Gestión de Motos</span>
-        </h6>
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'moto:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Motos
+                    <i class="fas fa-motorcycle me-2"></i>
+                    Motos
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'moto:listar' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Motos
-                    {% if not perms.moto.add_moto and not perms.moto.change_moto %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            {% if perms.moto.add_moto %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'moto:crear' %}">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Moto
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO GESTIÓN DE MOTORISTAS -->
-        {% if perms.motorista.view_motorista %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-user-tie me-1"></i> Gestión de Motoristas</span>
-        </h6>
+        
+        <!-- MÓDULO MOTORISTAS (excepto para motoristas) -->
+        {% if perms.motorista.view_motorista and not user.es_motorista %}
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'motorista:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Motoristas
+                    <i class="fas fa-user-tie me-2"></i>
+                    Motoristas
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'motorista:list' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Motoristas
-                    {% if not perms.motorista.add_motorista and not perms.motorista.change_motorista %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            {% if perms.motorista.add_motorista %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'motorista:create' %}">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Motorista
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO SISTEMA DE ASIGNACIONES -->
+        
+        <!-- MÓDULO ASIGNACIONES -->
         {% if perms.asignacion.view_asignacionmoto or perms.asignacion.view_asignacionfarmacia %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-tasks me-1"></i> Sistema de Asignaciones</span>
-        </h6>
         <ul class="nav flex-column mb-2">
-            <!-- Dashboard Asignaciones -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'asignacion:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Asignaciones
+                    <i class="fas fa-tasks me-2"></i>
+                    Asignaciones
                 </a>
             </li>
-            
-            <!-- Asignaciones de Motos -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'asignacion:listar_motos' %}">
-                    <i class="fas fa-motorcycle me-2"></i>
-                    Asignaciones de Motos
-                    {% if not perms.asignacion.add_asignacionmoto and not perms.asignacion.change_asignacionmoto %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            
-            <!-- Asignaciones de Farmacias -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'asignacion:listar_farmacias' %}">
-                    <i class="fas fa-clinic-medical me-2"></i>
-                    Asignaciones de Farmacias
-                    {% if not perms.asignacion.add_asignacionfarmacia and not perms.asignacion.change_asignacionfarmacia %}
-                    <span class="badge bg-secondary ms-1" title="Solo lectura">Solo Lectura</span>
-                    {% endif %}
-                </a>
-            </li>
-            
-            <!-- Crear Asignaciones -->
-            {% if perms.asignacion.add_asignacionmoto or perms.asignacion.add_asignacionfarmacia %}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Asignación
-                </a>
-                <ul class="dropdown-menu">
-                    {% if perms.asignacion.add_asignacionmoto %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'asignacion:crear_moto' %}">
-                            <i class="fas fa-motorcycle me-2"></i> Asignación de Moto
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if perms.asignacion.add_asignacionfarmacia %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'asignacion:crear_farmacia' %}">
-                            <i class="fas fa-clinic-medical me-2"></i> Asignación de Farmacia
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO GESTIÓN DE MOVIMIENTOS - ACTUALIZADO -->
-        {% if perms.movimiento.view_movimiento or perms.movimiento.view_ordendespacho %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-shipping-fast me-1"></i> Gestión de Movimientos</span>
-        </h6>
+        
+        <!-- MÓDULO MOVIMIENTOS -->
+        {% if perms.movimiento.view_movimiento %}
         <ul class="nav flex-column mb-2">
-            <!-- Dashboard Movimientos -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'movimiento:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Movimientos
+                    <i class="fas fa-shipping-fast me-2"></i>
+                    Movimientos
                 </a>
             </li>
-            
-            <!-- Dashboard Órdenes -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:orden_dashboard' %}">
-                    <i class="fas fa-clipboard-list me-2"></i>
-                    Dashboard Órdenes
-                </a>
-            </li>
-            
-            <!-- Lista de Movimientos -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Movimientos
-                </a>
-            </li>
-            
-            <!-- Lista de Órdenes -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:orden_list' %}">
-                    <i class="fas fa-file-invoice me-2"></i>
-                    Lista de Órdenes
-                </a>
-            </li>
-            
-            <!-- Creación de Movimientos - Solo con permiso add -->
-            {% if perms.movimiento.add_movimiento %}
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Movimiento
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'directo' %}">
-                            <i class="fas fa-bolt me-2"></i> Movimiento Directo
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'receta' %}">
-                            <i class="fas fa-prescription me-2"></i> Movimiento Receta
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'traslado' %}">
-                            <i class="fas fa-exchange-alt me-2"></i> Movimiento Traslado
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'movimiento:crear' 'reenvio' %}">
-                            <i class="fas fa-redo me-2"></i> Movimiento Reenvío
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            {% endif %}
-            
-            <!-- Crear Orden de Despacho - Solo con permiso add -->
-            {% if perms.movimiento.add_ordendespacho %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:orden_crear' %}">
-                    <i class="fas fa-file-medical me-2"></i>
-                    Crear Orden de Despacho
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO GESTIÓN DE INCIDENCIAS -->
+        
+        <!-- MÓDULO INCIDENCIAS -->
         {% if perms.configuracion.view_incidencia %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-exclamation-triangle me-1"></i> Gestión de Incidencias</span>
-        </h6>
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'configuracion:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Incidencias
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Incidencias
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'configuracion:lista_incidencias' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Lista de Incidencias
-                </a>
-            </li>
-            {% if perms.configuracion.add_incidencia %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'configuracion:reportar_incidencia' %}">
-                    <i class="fas fa-plus-circle me-2"></i>
-                    Crear Incidencia
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO REPORTES Y ANALYTICS -->
-        {% if perms.reporte.view_reportegenerado or user.is_superuser %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-chart-bar me-1"></i> Reportes y Analytics</span>
-        </h6>
+        
+        <!-- MÓDULO REPORTES -->
+        {% if perms.reporte.view_reportegenerado %}
         <ul class="nav flex-column mb-2">
-            <!-- Dashboard de Reportes -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'reporte:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Dashboard Reportes
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Reportes
                 </a>
             </li>
-            
-            <!-- Reportes Específicos -->
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Reportes Específicos
-                </a>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:farmacia' %}">
-                            <i class="fas fa-clinic-medical me-2"></i>
-                            Reportes Farmacias
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:motorista' %}">
-                            <i class="fas fa-user-tie me-2"></i>
-                            Reportes Motoristas
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:movimiento' %}">
-                            <i class="fas fa-shipping-fast me-2"></i>
-                            Reportes Movimientos
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:asignacion' %}">
-                            <i class="fas fa-tasks me-2"></i>
-                            Reportes Asignaciones
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:moto' %}">
-                            <i class="fas fa-motorcycle me-2"></i>
-                            Reportes Motos
-                        </a>
-                    </li>
-                    <!-- Nuevo: Reportes de Órdenes -->
-                    <li>
-                        <a class="dropdown-item" href="{% url 'reporte:ordenes' %}">
-                            <i class="fas fa-file-invoice me-2"></i>
-                            Reportes Órdenes
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            
-            <!-- Reportes Gerenciales - Solo Gerente -->
-            {% if perms.reporte.view_reporte_gerencial %}
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'reporte:gerencial' %}">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    Reportes Gerenciales
-                </a>
-            </li>
-            {% endif %}
         </ul>
         {% endif %}
-
-        <!-- MÓDULO PARA MOTORISTAS -->
+        
+        <!-- MÓDULO MIS ENTREGAS (SOLO PARA MOTORISTAS) -->
         {% if user.es_motorista %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-truck me-1"></i> Mis Entregas</span>
-        </h6>
         <ul class="nav flex-column mb-2">
-            <!-- Movimientos Asignados al Motorista -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}">
-                    <i class="fas fa-list me-2"></i>
-                    Mis Movimientos Asignados
+                <a class="nav-link" href="{% url 'movimiento:dashboard' %}">
+                    <i class="fas fa-box me-2"></i>
+                    Mis Entregas
                 </a>
             </li>
-            
-            <!-- Dashboard Motorista -->
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'motorista:dashboard' %}">
-                    <i class="fas fa-tachometer-alt me-2"></i>
-                    Mi Dashboard
-                </a>
-            </li>
-            
-            <!-- Historial de Entregas -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:list' %}?estado=entregado">
-                    <i class="fas fa-history me-2"></i>
-                    Mi Historial de Entregas
-                </a>
-            </li>
-            
-            <!-- Mis Órdenes Asignadas -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'movimiento:orden_list' %}">
-                    <i class="fas fa-clipboard-list me-2"></i>
-                    Mis Órdenes Asignadas
-                </a>
-            </li>
-            
-            <!-- Incidencias del Motorista -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'configuracion:lista_incidencias' %}">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                <a class="nav-link" href="{% url 'configuracion:dashboard' %}">
+                    <i class="fas fa-exclamation-circle me-2"></i>
                     Mis Incidencias
                 </a>
             </li>
         </ul>
         {% endif %}
-
-        <!-- MÓDULO MI CUENTA (Para todos los usuarios autenticados) -->
+        
+        <!-- SEPARADOR PARA MI CUENTA -->
+        <hr class="sidebar-divider my-3">
+        
+        <!-- MÓDULO MI CUENTA -->
         {% if user.is_authenticated %}
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fas fa-user-circle me-1"></i> Mi Cuenta</span>
-        </h6>
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'usuario:perfil' %}">
@@ -456,28 +141,33 @@
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'usuario:cambiar_password' %}">
                     <i class="fas fa-key me-2"></i>
-                    Cambiar Contraseña
+                    Contraseña
                 </a>
             </li>
-            
-            <!-- Enlace a Estadísticas Avanzadas - Solo con permiso -->
-            {% if perms.core.view_estadisticas %}
-            <li class="nav-item" style="display: none;"> <!-- Oculto temporalmente hasta que se implemente -->
-                <a class="nav-link" href="{% url 'core:estadisticas_avanzadas' %}">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Estadísticas Avanzadas
-                </a>
-            </li>
-            {% endif %}
-            
-            <!-- Acceso Rápido al Dashboard Principal -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'core:dashboard' %}">
                     <i class="fas fa-home me-2"></i>
-                    Dashboard Principal
+                    Inicio
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="{% url 'usuario:logout' %}">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    Salir
                 </a>
             </li>
         </ul>
+        {% endif %}
+        
+        <!-- INFO DEL USUARIO ACTUAL -->
+        {% if user.is_authenticated %}
+        <div class="sidebar-user-info mt-4 p-3 bg-light rounded">
+            <div class="small text-muted mb-1">Conectado como:</div>
+            <div class="font-weight-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+            <div class="small text-muted">
+                <span class="badge bg-info">{{ user.get_rol_display }}</span>
+            </div>
+        </div>
         {% endif %}
     </div>
 </nav>
@@ -486,66 +176,75 @@
 .sidebar {
     min-height: calc(100vh - 56px);
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-    overflow-y: auto;
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
+.sidebar-brand-icon {
+    padding: 15px 0;
+}
+
+.sidebar-brand-text {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.sidebar-divider {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 1rem 1rem;
+}
+
+/* Estilos para enlaces del sidebar */
 .sidebar .nav-link {
-    font-weight: 500;
-    color: #333;
+    color: #4a5568;
     padding: 0.75rem 1rem;
     border-left: 3px solid transparent;
     transition: all 0.2s ease;
-}
-
-.sidebar .nav-link:hover {
-    color: #007bff;
-    background-color: #f8f9fa;
-    border-left-color: #007bff;
-}
-
-.sidebar .nav-link.active {
-    color: #007bff;
-    background-color: #e9ecef;
-    border-left-color: #007bff;
-    font-weight: 600;
-}
-
-.sidebar .sidebar-heading {
-    font-size: .75rem;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.sidebar .dropdown-menu {
-    border: none;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    font-weight: 500;
+    margin: 0.1rem 0.5rem;
     border-radius: 0.375rem;
 }
 
-.sidebar .dropdown-item {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
+.sidebar .nav-link:hover {
+    color: #2d3748;
+    background-color: #edf2f7;
+    border-left-color: #4299e1;
+    transform: translateX(2px);
 }
 
-.sidebar .dropdown-item:hover {
-    background-color: #f8f9fa;
-    color: #007bff;
+.sidebar .nav-link.active {
+    color: #2b6cb0;
+    background-color: #ebf8ff;
+    border-left-color: #2b6cb0;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.sidebar .badge {
-    font-size: 0.65rem;
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+    opacity: 0.8;
 }
 
-/* Estilos para mejorar la legibilidad */
-.sidebar .nav-item {
-    margin-bottom: 0.1rem;
+.sidebar .nav-link:hover i {
+    opacity: 1;
 }
 
-.sidebar .nav-flex-column {
-    gap: 0.1rem;
+.sidebar .nav-link.active i {
+    color: #2b6cb0;
 }
 
-/* Scrollbar personalizado para sidebar */
+/* Información del usuario */
+.sidebar-user-info {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: auto;
+}
+
+.sidebar-user-info .badge {
+    font-size: 0.7em;
+    padding: 0.25em 0.6em;
+}
+
+/* Scrollbar personalizado */
 .sidebar::-webkit-scrollbar {
     width: 6px;
 }
@@ -563,109 +262,105 @@
     background: #a8a8a8;
 }
 
-/* Estilos específicos para el módulo de movimientos */
-.sidebar .nav-link i.fa-shipping-fast {
-    color: #28a745;
+/* Efecto para enlace de salir */
+.sidebar .nav-link.text-danger:hover {
+    color: #c53030 !important;
+    background-color: #fed7d7;
+    border-left-color: #c53030;
 }
 
-.sidebar .nav-link:hover i.fa-shipping-fast {
-    color: #007bff;
-}
-
-.sidebar .nav-link.active i.fa-shipping-fast {
-    color: #007bff;
-}
-
-/* Estilos para nuevos iconos de órdenes */
-.sidebar .nav-link i.fa-clipboard-list,
-.sidebar .nav-link i.fa-file-invoice,
-.sidebar .nav-link i.fa-file-medical {
-    color: #6f42c1;
-}
-
-.sidebar .nav-link:hover i.fa-clipboard-list,
-.sidebar .nav-link:hover i.fa-file-invoice,
-.sidebar .nav-link:hover i.fa-file-medical {
-    color: #007bff;
-}
-
-/* Indicador visual para nuevas funcionalidades */
-.new-feature-badge {
-    background: linear-gradient(45deg, #ff6b6b, #ffa726);
-    color: white;
-    font-size: 0.6rem;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
-    margin-left: 0.5rem;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+    }
+    .sidebar-user-info {
+        display: none;
+    }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Resaltar elemento activo en el sidebar
+    // FUNCIONALIDAD DEL SIDEBAR SIMPLIFICADO
+    
+    // 1. Obtener la ruta actual
     const currentPath = window.location.pathname;
     const sidebarLinks = document.querySelectorAll('#sidebar .nav-link');
     
+    // 2. Resaltar enlace activo
     sidebarLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
+        const linkHref = link.getAttribute('href');
         
-        // Para enlaces dropdown, verificar también los hijos
-        const dropdownItems = link.parentElement.querySelectorAll('.dropdown-item');
-        dropdownItems.forEach(item => {
-            if (item.getAttribute('href') === currentPath) {
+        if (linkHref) {
+            // Para enlaces exactos
+            if (currentPath === linkHref) {
                 link.classList.add('active');
-                item.classList.add('active');
+            }
+            // Para subrutas (ej: /usuario/perfil/ debería activar /usuario/)
+            else if (currentPath.startsWith(linkHref) && linkHref !== '/') {
+                link.classList.add('active');
+            }
+            // Para dashboard principal
+            else if (linkHref === '/' && currentPath === '/') {
+                link.classList.add('active');
+            }
+        }
+    });
+    
+    // 3. Manejar clics
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            // Solo remover activo de enlaces del mismo grupo
+            const allLinks = document.querySelectorAll('#sidebar .nav-link');
+            allLinks.forEach(l => l.classList.remove('active'));
+            
+            // Marcar como activo
+            this.classList.add('active');
+            
+            // Feedback visual suave
+            this.style.transform = 'translateX(0)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 300);
+        });
+    });
+    
+    // 4. Efecto hover mejorado
+    sidebarLinks.forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateX(3px)';
+            }
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateX(0)';
             }
         });
     });
     
-    // Mantener dropdowns abiertos si hay un elemento activo
-    const dropdowns = document.querySelectorAll('.nav-item.dropdown');
-    dropdowns.forEach(dropdown => {
-        const activeItem = dropdown.querySelector('.dropdown-item.active');
-        if (activeItem) {
-            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-            dropdownToggle.classList.add('active');
-        }
-    });
-
-    // Mejorar la experiencia del módulo de movimientos
-    const movimientoLinks = document.querySelectorAll('#sidebar a[href*="movimiento"]');
-    movimientoLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            // Remover activo de todos los enlaces de movimiento
-            movimientoLinks.forEach(l => l.classList.remove('active'));
-            // Agregar activo al enlace clickeado
-            this.classList.add('active');
-        });
-    });
-
-    // Agregar indicadores visuales para nuevas funcionalidades (solo primera vez)
-    if (!localStorage.getItem('movimientosVisto')) {
-        const ordenLinks = document.querySelectorAll('#sidebar a[href*="orden"]');
-        ordenLinks.forEach(link => {
-            const badge = document.createElement('span');
-            badge.className = 'new-feature-badge';
-            badge.textContent = 'Nuevo';
-            link.appendChild(badge);
-        });
-        
-        // Marcar como visto después de 10 segundos
-        setTimeout(() => {
-            localStorage.setItem('movimientosVisto', 'true');
-            document.querySelectorAll('.new-feature-badge').forEach(badge => {
-                badge.remove();
+    // 5. Para mobile: cerrar sidebar al hacer clic
+    if (window.innerWidth < 768) {
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar.classList.contains('show')) {
+                    const collapse = new bootstrap.Collapse(sidebar);
+                    collapse.hide();
+                }
             });
-        }, 10000);
+        });
+    }
+    
+    // 6. Mostrar/ocultar sidebar en mobile
+    const sidebarToggler = document.querySelector('[data-bs-target="#sidebar"]');
+    if (sidebarToggler) {
+        sidebarToggler.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsing');
+        });
     }
 });
 </script>

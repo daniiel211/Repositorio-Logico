@@ -1,0 +1,246 @@
+<!-- templates/usuario/dashboard_usuario.html - DASHBOARD ESPECÍFICO DE USUARIOS -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ titulo }}</h1>
+    </div>
+    
+    <!-- 
+    DASHBOARD DINÁMICO SEGÚN ROL:
+    Esta plantilla muestra diferentes contenidos según el rol del usuario
+    Controlado por variables del contexto (puede_ver_lista, puede_crear, etc.)
+    -->
+    
+    <!-- SECCIÓN PARA MOTORISTAS (SOLO PERFIL PERSONAL) -->
+    {% if es_motorista %}
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Mi Perfil Personal</h6>
+                </div>
+                <div class="card-body">
+                    <p>Como motorista, solo puedes gestionar tu propia información.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-left-primary shadow h-100 py-2 mb-3">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Ver mi perfil
+                                            </div>
+                                            <p class="mb-0">Revisa y actualiza tu información personal.</p>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{% url 'usuario:perfil' %}" class="btn btn-primary btn-sm btn-block">
+                                        Ver Perfil
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border-left-warning shadow h-100 py-2 mb-3">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Cambiar contraseña
+                                            </div>
+                                            <p class="mb-0">Actualiza tu contraseña de acceso.</p>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-key fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{% url 'usuario:cambiar_password' %}" class="btn btn-warning btn-sm btn-block">
+                                        Cambiar Contraseña
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información:</strong> Los motoristas solo tienen acceso a su propio perfil. 
+                        Para otras gestiones de usuarios, contacta a tu supervisor.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SECCIÓN PARA OTROS ROLES (GERENTE, SUPERVISOR, OPERADOR) -->
+    {% else %}
+    
+    <!-- Métricas para roles administrativos -->
+    <div class="row">
+        {% if total_usuarios %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total de Usuarios
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_usuarios }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if usuarios_activos %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Usuarios Activos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ usuarios_activos }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Tarjetas de Acción según Permisos -->
+    <div class="row">
+        <!-- Tarjeta: Ver Lista de Usuarios -->
+        {% if puede_ver_lista %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Lista de Usuarios
+                            </div>
+                            <p class="mb-0">Ver todos los usuarios del sistema.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'usuario:lista_usuarios' %}" class="btn btn-info btn-sm btn-block">
+                        Ver Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tarjeta: Crear Nuevo Usuario -->
+        {% if puede_crear %}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Crear Usuario
+                            </div>
+                            <p class="mb-0">Agregar nuevo usuario al sistema.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'usuario:crear_usuario' %}" class="btn btn-success btn-sm btn-block">
+                        Crear Usuario
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tarjeta: Mi Perfil (siempre visible) -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Mi Perfil
+                            </div>
+                            <p class="mb-0">Ver y editar mi información personal.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'usuario:perfil' %}" class="btn btn-primary btn-sm btn-block">
+                        Mi Perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta: Cambiar Contraseña (siempre visible) -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Seguridad
+                            </div>
+                            <p class="mb-0">Cambiar mi contraseña de acceso.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'usuario:cambiar_password' %}" class="btn btn-warning btn-sm btn-block">
+                        Cambiar Contraseña
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensaje Informativo según Rol -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    {% if user.es_gerente %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-user-shield"></i>
+                        <strong>Rol: Gerente</strong> - Tienes acceso completo a todas las funcionalidades de gestión de usuarios.
+                    </div>
+                    {% elif user.es_supervisor %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-user-tie"></i>
+                        <strong>Rol: Supervisor</strong> - Puedes crear y editar usuarios, pero no asignar el rol de Gerente.
+                    </div>
+                    {% elif user.es_operador %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-user-cog"></i>
+                        <strong>Rol: Operador</strong> - Solo puedes ver la lista de usuarios y gestionar tu propio perfil.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
