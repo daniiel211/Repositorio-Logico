@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Q, Sum, Avg, Case, When, FloatField, F, Min, Max
 from django.utils import timezone
@@ -24,6 +24,7 @@ from .models import ReporteGenerado
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def dashboard_reportes(request):
     """Dashboard principal de reportes"""
     context = {
@@ -34,6 +35,7 @@ def dashboard_reportes(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_farmacia(request):
     """Vista para generar reportes de farmacias"""
     if request.method == 'POST':
@@ -52,6 +54,7 @@ def reporte_farmacia(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_motorista(request):
     """Vista para generar reportes de motoristas"""
     if request.method == 'POST':
@@ -70,6 +73,7 @@ def reporte_motorista(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_moto(request):
     """Vista para generar reportes de motos"""
     if request.method == 'POST':
@@ -88,6 +92,7 @@ def reporte_moto(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_asignacion(request):
     """Vista para generar reportes de asignaciones"""
     if request.method == 'POST':
@@ -106,6 +111,7 @@ def reporte_asignacion(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_movimiento(request):
     """Vista para generar reportes de movimientos"""
     if request.method == 'POST':
@@ -124,6 +130,7 @@ def reporte_movimiento(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_ordenes(request):
     """Vista para generar reportes de órdenes de despacho"""
     if request.method == 'POST':
@@ -142,6 +149,7 @@ def reporte_ordenes(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor'])
+@permission_required('reporte.view_reporte', raise_exception=True)
 def reporte_incidencias(request):
     """Vista para generar reportes de incidencias"""
     if request.method == 'POST':
@@ -160,6 +168,7 @@ def reporte_incidencias(request):
 
 @login_required
 @require_roles(['gerente'])
+@permission_required('reporte.view_reporte_gerencial', raise_exception=True)
 def reporte_gerencial(request):
     """Vista para generar reportes de gerenciales"""
     # This is a placeholder for your gerencial report logic.
@@ -175,6 +184,7 @@ def reporte_gerencial(request):
 
 @login_required
 @require_roles(['gerente', 'supervisor', 'operador'])
+@permission_required('reporte.view_reportegenerado', raise_exception=True)
 def historial_reportes(request):
     """Muestra el historial de reportes generados por el usuario"""
     reportes = ReporteGenerado.objects.filter(usuario=request.user).order_by('-fecha_generacion')

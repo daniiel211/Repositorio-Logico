@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
@@ -16,6 +16,7 @@ def check_rol_gerente(user):
     return user.rol == 'gerente'
 
 @login_required
+@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
 def dashboard_configuracion(request):
     """Dashboard principal de configuración"""
     context = {
@@ -33,6 +34,7 @@ def dashboard_configuracion(request):
     return render(request, 'configuracion/dashboard.html', context)
 
 @login_required
+@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
 def lista_incidencias(request):
     """Lista de incidencias con filtros"""
     incidencias = IncidenciaMovimiento.objects.all().select_related(
@@ -59,6 +61,7 @@ def lista_incidencias(request):
     return render(request, 'configuracion/lista_incidencias.html', context)
 
 @login_required
+@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
 def detalle_incidencia(request, incidencia_id):
     """Detalle de una incidencia específica"""
     incidencia = get_object_or_404(
@@ -89,6 +92,7 @@ def detalle_incidencia(request, incidencia_id):
     return render(request, 'configuracion/detalle_incidencia.html', context)
 
 @login_required
+@permission_required('configuracion.add_incidenciamovimiento', raise_exception=True)
 def reportar_incidencia(request, movimiento_id=None):
     """Reportar una nueva incidencia"""
     from apps.movimiento.models import Movimiento
@@ -120,6 +124,7 @@ def reportar_incidencia(request, movimiento_id=None):
 
 @login_required
 @user_passes_test(check_rol_supervisor)
+@permission_required('configuracion.change_incidenciamovimiento', raise_exception=True)
 def resolver_incidencia(request, incidencia_id):
     """Resolver una incidencia (solo supervisores y gerentes)"""
     incidencia = get_object_or_404(IncidenciaMovimiento, id=incidencia_id)
@@ -141,17 +146,7 @@ def resolver_incidencia(request, incidencia_id):
     return render(request, 'configuracion/resolver_incidencia.html', context)
 
 @login_required
-@user_passes_test(check_rol_gerente)
-def gestion_rangos_accion(request):
-    """Gestión de rangos de acción (solo gerente)"""
-    rangos = RangoAccion.objects.select_related('farmacia', 'creado_por').all()
-    
-    context = {
-        'rangos': rangos,
-    }
-    return render(request, 'configuracion/gestion_rangos.html', context)
-
-@login_required
+@permission_required('configuracion.view_rangoaccion', raise_exception=True)
 def api_verificar_rango(request, farmacia_id, lat, lng):
     """API para verificar si una coordenada está dentro del rango de acción"""
     from farmacia.models import Farmacia
@@ -181,7 +176,8 @@ def api_verificar_rango(request, farmacia_id, lat, lng):
 
 @login_required
 @user_passes_test(check_rol_gerente)
-def gestion_rangos(request):
+@permission_required('configuracion.view_rangoaccion', raise_exception=True)
+def gestion_rangos_accion(request):
     """Gestión de rangos de acción (solo gerente)"""
     from apps.farmacia.models import Farmacia
     from .models import RangoAccion
@@ -199,34 +195,3 @@ def gestion_rangos(request):
         'farmacias_sin_configurar': farmacias_sin_configurar,
     }
     return render(request, 'configuracion/gestion_rangos.html', context)
-
-@login_required
-def reportar_incidencia(request, movimiento_id=None):
-    """Reportar una nueva incidencia"""
-    from apps.movimiento.models import Movimiento
-    from .models import TipoIncidencia
-    
-    movimiento = None
-    if movimiento_id:
-        movimiento = get_object_or_404(Movimiento, idMovimiento=movimiento_id)
-    
-    if request.method == 'POST':
-        form = IncidenciaMovimientoForm(request.POST, request.FILES)
-        if form.is_valid():
-            incidencia = form.save(commit=False)
-            if movimiento:
-                incidencia.movimiento = movimiento
-            incidencia.reportada_por = request.user
-            incidencia.save()
-            
-            messages.success(request, 'Incidencia reportada correctamente.')
-            return redirect('configuracion:detalle_incidencia', incidencia_id=incidencia.id)
-    else:
-        form = IncidenciaMovimientoForm(initial={'movimiento': movimiento} if movimiento else None)
-    
-    context = {
-        'form': form,
-        'movimiento': movimiento,
-        'tipos_incidencia': TipoIncidencia.objects.filter(activo=True),
-    }
-    return render(request, 'configuracion/reportar_incidencia.html', context)
