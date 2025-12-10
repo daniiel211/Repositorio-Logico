@@ -1,22 +1,18 @@
+# apps/configuracion/views.py - ARCHIVO COMPLETO ACTUALIZADO
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
 
+# Importar decoradores personalizados
+from apps.usuario.decorators import require_roles, require_permission
+
 from .models import RangoAccion, TipoIncidencia, IncidenciaMovimiento, ConfiguracionSistema
 from .forms import IncidenciaMovimientoForm, ResolverIncidenciaForm
 
-def check_rol_supervisor(user):
-    """Verifica si el usuario tiene rol de supervisor o gerente"""
-    return user.rol in ['supervisor', 'gerente']
-
-def check_rol_gerente(user):
-    """Verifica si el usuario es gerente"""
-    return user.rol == 'gerente'
-
 @login_required
-@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
+@require_permission('configuracion.view_incidenciamovimiento')
 def dashboard_configuracion(request):
     """Dashboard principal de configuración"""
     context = {
@@ -34,7 +30,7 @@ def dashboard_configuracion(request):
     return render(request, 'configuracion/dashboard.html', context)
 
 @login_required
-@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
+@require_permission('configuracion.view_incidenciamovimiento')
 def lista_incidencias(request):
     """Lista de incidencias con filtros"""
     incidencias = IncidenciaMovimiento.objects.all().select_related(
@@ -61,7 +57,7 @@ def lista_incidencias(request):
     return render(request, 'configuracion/lista_incidencias.html', context)
 
 @login_required
-@permission_required('configuracion.view_incidenciamovimiento', raise_exception=True)
+@require_permission('configuracion.view_incidenciamovimiento')
 def detalle_incidencia(request, incidencia_id):
     """Detalle de una incidencia específica"""
     incidencia = get_object_or_404(
@@ -92,7 +88,7 @@ def detalle_incidencia(request, incidencia_id):
     return render(request, 'configuracion/detalle_incidencia.html', context)
 
 @login_required
-@permission_required('configuracion.add_incidenciamovimiento', raise_exception=True)
+@require_permission('configuracion.add_incidenciamovimiento')
 def reportar_incidencia(request, movimiento_id=None):
     """Reportar una nueva incidencia"""
     from apps.movimiento.models import Movimiento
@@ -123,8 +119,8 @@ def reportar_incidencia(request, movimiento_id=None):
     return render(request, 'configuracion/reportar_incidencia.html', context)
 
 @login_required
-@user_passes_test(check_rol_supervisor)
-@permission_required('configuracion.change_incidenciamovimiento', raise_exception=True)
+@require_roles(['supervisor', 'gerente'])
+@require_permission('configuracion.change_incidenciamovimiento')
 def resolver_incidencia(request, incidencia_id):
     """Resolver una incidencia (solo supervisores y gerentes)"""
     incidencia = get_object_or_404(IncidenciaMovimiento, id=incidencia_id)
@@ -146,7 +142,7 @@ def resolver_incidencia(request, incidencia_id):
     return render(request, 'configuracion/resolver_incidencia.html', context)
 
 @login_required
-@permission_required('configuracion.view_rangoaccion', raise_exception=True)
+@require_permission('configuracion.view_rangoaccion')
 def api_verificar_rango(request, farmacia_id, lat, lng):
     """API para verificar si una coordenada está dentro del rango de acción"""
     from farmacia.models import Farmacia
@@ -175,8 +171,8 @@ def api_verificar_rango(request, farmacia_id, lat, lng):
         return JsonResponse({'error': 'Farmacia o rango no configurado'}, status=404)
 
 @login_required
-@user_passes_test(check_rol_gerente)
-@permission_required('configuracion.view_rangoaccion', raise_exception=True)
+@require_roles(['gerente'])
+@require_permission('configuracion.view_rangoaccion')
 def gestion_rangos_accion(request):
     """Gestión de rangos de acción (solo gerente)"""
     from apps.farmacia.models import Farmacia
@@ -195,3 +191,68 @@ def gestion_rangos_accion(request):
         'farmacias_sin_configurar': farmacias_sin_configurar,
     }
     return render(request, 'configuracion/gestion_rangos.html', context)
+
+# ==============================================
+# NUEVAS VISTAS PARA CONFIGURACIÓN DEL SISTEMA
+# ==============================================
+
+@login_required
+@require_roles(['gerente'])
+def gestion_configuracion_sistema(request):
+    """
+    Gestión de configuración del sistema - Solo para gerentes
+    Vista principal que muestra todas las configuraciones
+    """
+    configuraciones = ConfiguracionSistema.objects.all()
+    
+    context = {
+        'configuraciones': configuraciones,
+        'es_gerente': True,
+    }
+    
+    return render(request, 'configuracion/gestion_configuracion.html', context)
+
+@login_required
+@require_roles(['gerente'])
+def editar_configuracion(request, clave):
+    """
+    Editar una configuración específica - Solo para gerentes
+    """
+    configuracion = get_object_or_404(ConfiguracionSistema, clave=clave)
+    
+    if not configuracion.editable:
+        messages.error(request, 'Esta configuración no es editable.')
+        return redirect('configuracion:gestion_configuracion_sistema')
+    
+    if request.method == 'POST':
+        nuevo_valor = request.POST.get('valor')
+        if nuevo_valor:
+            configuracion.valor = nuevo_valor
+            configuracion.modificado_por = request.user
+            configuracion.save()
+            messages.success(request, f'Configuración "{configuracion.clave}" actualizada correctamente.')
+            return redirect('configuracion:gestion_configuracion_sistema')
+    
+    context = {
+        'configuracion': configuracion,
+    }
+    return render(request, 'configuracion/editar_configuracion.html', context)
+
+@login_required
+@require_roles(['gerente'])
+def api_configuraciones(request):
+    """
+    API para obtener configuraciones del sistema - Solo para gerentes
+    Útil para AJAX o integraciones
+    """
+    if request.method == 'GET':
+        configuraciones = ConfiguracionSistema.objects.all()
+        data = {
+            config.clave: {
+                'valor': config.valor,
+                'tipo': config.tipo,
+                'descripcion': config.descripcion
+            }
+            for config in configuraciones
+        }
+        return JsonResponse(data)

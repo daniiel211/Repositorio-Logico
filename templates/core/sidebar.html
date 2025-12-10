@@ -1,4 +1,4 @@
-<!-- templates/core/sidebar.html - VERSIÓN SIMPLIFICADA CON ICONOS -->
+<!-- templates/core/sidebar.html - VERSIÓN ACTUALIZADA -->
 <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
     <div class="position-sticky pt-3">
         
@@ -85,12 +85,36 @@
         {% endif %}
         
         <!-- MÓDULO INCIDENCIAS -->
-        {% if perms.configuracion.view_incidencia %}
+        {% if perms.configuracion.view_incidenciamovimiento %}
         <ul class="nav flex-column mb-2">
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'configuracion:dashboard' %}">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Incidencias
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+        
+        <!-- MÓDULO CONFIGURACIÓN DEL SISTEMA (SOLO GERENTES) -->
+        {% if user.rol == 'gerente' or user.is_superuser %}
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'core:configuracion_sistema' %}">
+                    <i class="fas fa-cogs me-2"></i>
+                    Configuración
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+        
+        <!-- MÓDULO RANGOS DE ACCIÓN (SOLO GERENTES) -->
+        {% if user.rol == 'gerente' or user.is_superuser %}
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'configuracion:gestion_rangos' %}">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    Rangos
                 </a>
             </li>
         </ul>
@@ -148,12 +172,6 @@
                 <a class="nav-link" href="{% url 'core:dashboard' %}">
                     <i class="fas fa-home me-2"></i>
                     Inicio
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-danger" href="{% url 'usuario:logout' %}">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    Salir
                 </a>
             </li>
         </ul>

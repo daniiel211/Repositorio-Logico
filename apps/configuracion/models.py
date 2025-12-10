@@ -1,3 +1,4 @@
+# apps/configuracion/models.py - ARCHIVO CORREGIDO COMPLETO
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -61,6 +62,7 @@ class RangoAccion(models.Model):
         db_table = 'configuracion_rango_accion'
         verbose_name = 'Rango de Acción'
         verbose_name_plural = 'Rangos de Acción'
+        # SIN PERMISOS PERSONALIZADOS - Django ya los crea automáticamente
 
     def __str__(self):
         return f"Rango - {self.farmacia.nombre} ({self.distancia_maxima_km}km)"
@@ -101,6 +103,7 @@ class TipoIncidencia(models.Model):
         db_table = 'configuracion_tipo_incidencia'
         verbose_name = 'Tipo de Incidencia'
         verbose_name_plural = 'Tipos de Incidencia'
+        # SIN PERMISOS PERSONALIZADOS - Django ya los crea automáticamente
 
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"
@@ -198,6 +201,7 @@ class IncidenciaMovimiento(models.Model):
         verbose_name = 'Incidencia de Movimiento'
         verbose_name_plural = 'Incidencias de Movimiento'
         ordering = ['-fecha_incidencia']
+        # SIN PERMISOS PERSONALIZADOS - Django ya los crea automáticamente
 
     def __str__(self):
         return f"Incidencia #{self.id} - {self.movimiento.idMovimiento}"
@@ -252,6 +256,7 @@ class ConfiguracionSistema(models.Model):
         db_table = 'configuracion_sistema'
         verbose_name = 'Configuración del Sistema'
         verbose_name_plural = 'Configuraciones del Sistema'
+        # SIN PERMISOS PERSONALIZADOS - Django ya los crea automáticamente
 
     def __str__(self):
         return f"{self.clave} = {self.valor}"
